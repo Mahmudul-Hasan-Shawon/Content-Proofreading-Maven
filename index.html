@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GXC Content Optimizer</title>
+    <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/10528/10528411.png">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Configure Tailwind Dark Mode strategy -->
+     
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3b82f6',
+                        secondary: '#64748b',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['SF Mono', 'Monaco', 'Courier New', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+        /* --- Global Smooth Transitions --- */
+        body,
+        div,
+        span,
+        p,
+        h1,
+        h2,
+        h3,
+        button,
+        input,
+        .container-card,
+        .input-field {
+            transition: background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                color 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                border-color 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                box-shadow 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+            /* Light mode default */
+            color: #1e293b;
+        }
+
+        /* Dark Mode overrides applied via CSS class for performance */
+        .dark body {
+            background-color: #0f172a;
+            color: #f1f5f9;
+        }
+
+        /* --- Components --- */
+        .container-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+        }
+
+        .dark .container-card {
+            background: rgba(30, 41, 59, 0.7);
+            border-color: #334155;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+        }
+
+        .container-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.02);
+        }
+
+        .dark .container-card:hover {
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 10px 10px -5px rgba(0, 0, 0, 0.3);
+        }
+
+        /* --- Tabs --- */
+        .prompt-tab {
+            position: relative;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .prompt-tab.active {
+            background: linear-gradient(135deg, #10b981 0%, #0d9488 100%);
+            color: white;
+            /* box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3); */
+        }
+
+        /* --- Scrollbar --- */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+
+        .dark .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #475569;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        /* --- Interactions --- */
+        .btn-primary {
+            background: linear-gradient(135deg, #10b981 0%, #0d9488 100%);
+            color: white;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(rgba(255, 255, 255, 0.2), transparent);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 10px 20px -5px rgba(16, 185, 129, 0.4);
+        }
+
+        /* Update keyword badge */
+        #keyword-badge {
+            background: rgba(94, 234, 212, 0.2);
+            border-color: rgba(94, 234, 212, 0.3);
+            color: #0d9488;
+        }
+
+        .dark #keyword-badge {
+            background: rgba(20, 184, 166, 0.2);
+            color: #5eead4;
+        }
+
+        
+
+        /* Brand rules icon */
+        .bg-indigo-100 {
+            background-color: #ccfbf1;
+        }
+
+        .text-indigo-500 {
+            color: #0d9488;
+        }
+
+        .dark .bg-indigo-900 {
+            background-color: rgba(13, 148, 136, 0.2);
+        }
+
+        .dark .text-indigo-400 {
+            color: #5eead4;
+        }
+
+        /* Prompts icon */
+        .bg-emerald-100 {
+            background-color: #d1fae5;
+        }
+
+        .text-emerald-500 {
+            color: #10b981;
+        }
+
+        .btn-primary:active {
+            transform: translateY(0) scale(0.98);
+        }
+
+        .btn-primary:hover::after {
+            opacity: 1;
+        }
+
+        .input-field {
+            background-color: white;
+            border: 1px solid #e2e8f0;
+            transition: all 0.3s ease;
+        }
+
+        .dark .input-field {
+            background-color: #1e293b;
+            border-color: #334155;
+            color: #f1f5f9;
+        }
+
+        .input-field:focus {
+            border-color: #10b981;
+            box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.15);
+            outline: none;
+            transform: scale(1.01);
+        }
+
+        /* --- Animations --- */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        .keyword-highlight {
+            background: rgba(251, 191, 36, 0.2);
+            color: #d97706;
+            padding: 2px 4px;
+            border-radius: 4px;
+            font-weight: 600;
+            border: 1px solid rgba(251, 191, 36, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .dark .keyword-highlight {
+            background: rgba(217, 119, 6, 0.2);
+            color: #fcd34d;
+            border-color: rgba(245, 158, 11, 0.4);
+        }
+
+        /* --- Upload Area --- */
+        .upload-area {
+            border: 2px dashed #cbd5e1;
+            background: #f8fafc;
+            transition: all 0.3s ease;
+        }
+
+        .dark .upload-area {
+            border-color: #334155;
+            background: #1e293b;
+        }
+
+        .upload-area:hover,
+        .upload-area.dragover {
+            border-color: #10b981;
+            background: #f0fdf4;
+            transform: scale(1.01);
+        }
+
+        .dark .upload-area:hover,
+        .dark .upload-area.dragover {
+            background: #1e293b;
+            border-color: #5eead4;
+            box-shadow: inset 0 0 20px rgba(96, 165, 250, 0.1);
+        }
+
+        /* Theme Toggle Spinner */
+        .theme-icon-spin {
+            transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .theme-btn:hover .theme-icon-spin {
+            transform: rotate(180deg);
+        }
+
+        /* Add this to your existing CSS */
+        .fade-out {
+            opacity: 0;
+            transform: translateX(5px);
+            pointer-events: none;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+    </style>
+</head>
+
+<body class="antialiased min-h-screen">
+    <div class="container mx-auto px-2 py-6 active max-w-7xl">
+        <!-- Header -->
+        <header class="mb-8 flex flex-col md:flex-row items-center justify-between gap-4 animate-fade-in">
+            <div class="flex items-center gap-4">
+                <div
+                    class="w-12 h-12 bg-gradient-to-br from-green-500 to-cyan-600 rounded-xl flex items-center justify-center shadow-lg shadow-cyan-500/30 transition-transform hover:rotate-3 hover:scale-110 cursor-pointer">
+                    <i class="fas fa-wand-magic-sparkles text-white text-lg"></i>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">GXC Content Optimizer
+                    </h1>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 font-medium">Format prompts with precision &
+                        brand rules</p>
+                </div>
+            </div>
+
+            <button id="theme-toggle"
+                class="theme-btn w-12 h-12 rounded-xl bg-gray-200 dark:bg-gray-800 flex items-center justify-center shadow-sm hover:shadow-md transition-all">
+                <i id="theme-icon" class="fas fa-moon text-gray-600 dark:text-yellow-400 text-lg theme-icon-spin"></i>
+            </button>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+            <!-- Left Panel -->
+            <div class="lg:col-span-3 space-y-4 flex flex-col">
+
+                <!-- Upload Card -->
+                <div class="container-card p-4 flex-1 flex flex-col">
+                    <!-- <div class="flex items-center justify-between mb-4">
+                        <h2 class="font-bold text-gray-800 dark:text-white text-lg">Source Files</h2>
+                        <div id="file-status-indicator"
+                            class="w-2.5 h-2.5 rounded-full bg-gray-300 dark:bg-gray-600 transition-colors duration-300">
+                        </div>
+                    </div> -->
+
+                    <div class="upload-area p-8 text-center cursor-pointer rounded-xl group mb-6" id="upload-area">
+                        <input type="file" id="file-input" accept=".txt" multiple class="hidden">
+                        <div
+                            class="w-16 h-16 bg-green-50 dark:bg-green-900/20 rounded-full flex items-center justify-center mx-auto mb-4 transition-transform duration-300 group-hover:scale-110 group-hover:bg-green-100 dark:group-hover:bg-green-900/40">
+                            <i class="fas fa-cloud-arrow-up text-green-500 dark:text-green-400 text-2xl"></i>
+                        </div>
+                        <h3 class="font-semibold text-gray-700 dark:text-gray-200 mb-1">Drag & Drop</h3>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">or click to browse .txt files</p>
+                        <div
+                            class="mt-4 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gray-100 dark:bg-gray-800 text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                            <i class="fas fa-file-alt"></i> Brand Rules + Prompts
+                        </div>
+                    </div>
+
+                    <!-- Status List -->
+                    <div class="space-y-4 mt-auto">
+                        <div class="flex items-center justify-between p-2 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-transparent dark:border-gray-700/50 transition-all"
+                            id="brand-row">
+                            <div class="flex items-center gap-2">
+                                <div
+                                    class="w-8 h-8 rounded-xl bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center">
+                                    <i class="fas fa-book text-indigo-500 dark:text-indigo-400 text-xs"></i>
+                                </div>
+                                <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Brand Rules</span>
+                            </div>
+                            <span
+                                class="status-text text-xs font-semibold text-gray-400 uppercase tracking-wide">Missing</span>
+                        </div>
+
+                        <div class="flex items-center justify-between p-2 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-transparent dark:border-gray-700/50 transition-all"
+                            id="prompts-row">
+                            <div class="flex items-center gap-2">
+                                <div
+                                    class="w-8 h-8 rounded-xl bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
+                                    <i class="fas fa-layer-group text-emerald-500 dark:text-emerald-400 text-xs"></i>
+                                </div>
+                                <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Prompt Files</span>
+                            </div>
+                            <span class="status-text text-xs font-semibold text-gray-400 uppercase tracking-wide">0/7
+                                Loaded</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Keyword Card -->
+                <div class="container-card p-4">
+                    <h2 class="font-bold text-gray-800 dark:text-white text-lg mb-4">Target Keyword</h2>
+
+                    <div class="space-y-4">
+                        <div class="relative group">
+                            <input type="text" id="keyword-input"
+                                class="input-field w-full px-4 py-2 text-sm rounded-xl focus:ring-4 focus:ring-blue-500/10"
+                                placeholder="e.g. Sustainable Coffee">
+                            <div
+                                class="absolute right-3 top-2 text-gray-400 group-focus-within:text-greeb-500 transition-colors">
+                                <i id="keyword-icon" class="fas fa-key"></i> <!-- Added ID here -->
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-3 gap-2">
+                            <button id="apply-keyword-btn"
+                                class="btn-primary col-span-2 py-2 rounded-xl text-sm font-semibold shadow-lg shadow-green-500/20">
+                                Apply Keyword
+                            </button>
+                            <button id="reset-btn"
+                                class="bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 py-2 rounded-xl text-sm font-semibold transition-all active:scale-95">
+                                Reset
+                            </button>
+                        </div>
+
+                        <div
+                            class="pt-4 border-t border-gray-200 dark:border-gray-700 grid grid-cols-2 gap-4 text-center">
+                            <div class="p-2 rounded-xl bg-gray-50 dark:bg-gray-800/50">
+                                <div
+                                    class="text-[10px] text-gray-500 dark:text-gray-400 uppercase font-bold tracking-wider mb-1">
+                                    Current</div>
+                                <div id="current-keyword"
+                                    class="text-sm font-bold text-gray-900 dark:text-white truncate">None</div>
+                            </div>
+                            <div class="p-2 rounded-xl bg-gray-50 dark:bg-gray-800/50">
+                                <div
+                                    class="text-[10px] text-gray-500 dark:text-gray-400 uppercase font-bold tracking-wider mb-1">
+                                    Status</div>
+                                <div id="keyword-status" class="text-sm font-bold text-gray-400">Standby</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Panel -->
+            <div class="lg:col-span-9 flex flex-col gap-4 h-full">
+
+                <!-- Tabs Container -->
+                <div class="container-card p-2 hidden" id="tabs-container">
+                    <div class="flex overflow-x-auto custom-scrollbar gap-1 p-1" id="prompt-tabs-wrapper">
+                        <!-- Tabs injected via JS -->
+                    </div>
+                </div>
+
+                <!-- Main Display Card -->
+                <div class="container-card flex-grow flex flex-col min-h-[600px] relative overflow-hidden">
+                    <!-- Header -->
+                    <div
+                        class="px-4 py-2 border-b border-gray-100 dark:border-gray-700/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm z-10">
+                        <div class="min-w-0">
+                            <h2 id="prompt-title"
+                                class="font-bold text-gray-900 dark:text-white text-xl truncate transition-all duration-300">
+                                Select a Prompt</h2>
+                            <p id="prompt-subtitle"
+                                class="text-xs text-gray-500 dark:text-gray-400 font-medium mt-1 flex items-center gap-2">
+                                <span class="w-1.5 h-1.5 rounded-full bg-gray-300 dark:bg-gray-600"></span>
+                                Waiting for files...
+                            </p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <div id="keyword-badge"
+                                class="hidden items-center gap-2 px-3 py-1.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full text-xs font-bold border border-green-200 dark:border-green-800 animate-fade-in">
+                                <i class="fas fa-check-circle"></i> Keyword Active
+                            </div>
+                            <button id="copy-btn" disabled
+                                class="btn-primary disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none px-5 py-1.5 rounded-full text-sm font-semibold flex items-center gap-2">
+                                <i class="far fa-copy"></i> Copy Prompt
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Content Area -->
+                    <div class="relative flex-grow bg-gray-50 dark:bg-[#0B1120] transition-colors duration-500">
+
+                        <!-- Empty State -->
+                        <div id="empty-state"
+                            class="absolute inset-0 flex flex-col items-center justify-center text-center p-6 z-20 transition-opacity duration-300">
+                            <div
+                                class="w-20 h-20 bg-gray-200 dark:bg-gray-800 rounded-full flex items-center justify-center mb-6 transition-transform duration-500 hover:scale-110 hover:rotate-6">
+                                <i class="fas fa-cube text-3xl text-gray-400 dark:text-gray-600"></i>
+                            </div>
+                            <h3 class="text-lg font-bold text-gray-700 dark:text-gray-300 mb-2">Workspace Empty</h3>
+                            <p class="text-sm text-gray-500 dark:text-gray-500 max-w-xs mx-auto">Upload your Brand Rules
+                                and Prompt text files to generate optimized content.</p>
+                        </div>
+
+                        <!-- Text Content -->
+                        <div id="prompt-content-wrapper"
+                            class="hidden h-full relative z-10 opacity-0 transition-opacity duration-300">
+                            <div class="p-4 h-full overflow-y-auto custom-scrollbar">
+                                <pre id="prompt-content"
+                                    class="font-mono text-xs leading-relaxed text-gray-700 dark:text-gray-300 whitespace-pre-wrap break-words"></pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- State Management ---
+        const state = {
+            brandRules: '',
+            prompts: { 1: '', 2: '', 3: '', 4: '', 5: '', 6: '', 7: '' },
+            promptTitles: {
+                1: 'Intro & Conclusion',
+                2: 'Heading Hierarchy',
+                3: 'Section Formatting',
+                4: 'Redundancy',
+                5: 'FAQ',
+                6: 'Meta Description',
+                7: 'Generate CTAs'
+            },
+            currentKeyword: '',
+            keywordApplied: false,
+            currentPromptIndex: 0,
+            isDark: false
+        };
+
+
+        // const state = {
+        //     brandRules: '',
+        //     prompts: { 1: '', 2: '', 3: '', 4: '', 5: '', 6: '', 7: '' },
+        //     promptTitles: {
+        //         1: 'Intro & Conclusion',
+        //         2: 'Heading Hierarchy & Keyword',
+        //         3: 'Section Formatting',
+        //         4: 'Redundancy Removal',
+        //         5: 'FAQ Optimization',
+        //         6: 'Meta Description',
+        //         7: 'Generate CTAs'
+        //     },
+        //     currentKeyword: '',
+        //     keywordApplied: false,
+        //     currentPromptIndex: 0,
+        //     isDark: false
+        // };
+
+        // --- DOM Elements ---
+        const els = {
+            body: document.body,
+            themeToggle: document.getElementById('theme-toggle'),
+            themeIcon: document.getElementById('theme-icon'),
+            uploadArea: document.getElementById('upload-area'),
+            fileInput: document.getElementById('file-input'),
+            keywordInput: document.getElementById('keyword-input'),
+            applyBtn: document.getElementById('apply-keyword-btn'),
+            resetBtn: document.getElementById('reset-btn'),
+            copyBtn: document.getElementById('copy-btn'),
+            tabsContainer: document.getElementById('tabs-container'),
+            tabsWrapper: document.getElementById('prompt-tabs-wrapper'),
+            promptTitle: document.getElementById('prompt-title'),
+            promptSubtitle: document.getElementById('prompt-subtitle'),
+            emptyState: document.getElementById('empty-state'),
+            contentWrapper: document.getElementById('prompt-content-wrapper'),
+            promptContent: document.getElementById('prompt-content'),
+            keywordBadge: document.getElementById('keyword-badge'),
+            currentKeyword: document.getElementById('current-keyword'),
+            keywordStatus: document.getElementById('keyword-status'),
+            brandRow: document.getElementById('brand-row'),
+            promptsRow: document.getElementById('prompts-row')
+        };
+
+        // --- Theme Logic ---
+        function initTheme() {
+            const saved = localStorage.getItem('gxc-theme');
+            const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+            if (saved === 'dark' || (!saved && systemDark)) {
+                applyTheme(true);
+            } else {
+                applyTheme(false);
+            }
+        }
+
+        function applyTheme(isDark) {
+            state.isDark = isDark;
+            if (isDark) {
+                document.documentElement.classList.add('dark');
+                els.themeIcon.classList.remove('fa-moon');
+                els.themeIcon.classList.add('fa-sun');
+            } else {
+                document.documentElement.classList.remove('dark');
+                els.themeIcon.classList.remove('fa-sun');
+                els.themeIcon.classList.add('fa-moon');
+            }
+            localStorage.setItem('gxc-theme', isDark ? 'dark' : 'light');
+        }
+
+        els.themeToggle.addEventListener('click', () => applyTheme(!state.isDark));
+
+        // --- Animation Utilities ---
+        const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+        async function smoothContentSwap(contentUpdater) {
+            if (!els.contentWrapper.classList.contains('hidden')) {
+                // Fade out
+                els.contentWrapper.style.opacity = '0';
+                els.promptContent.style.transform = 'translateY(5px)';
+                await wait(200);
+            }
+
+            // Execute logic update
+            contentUpdater();
+
+            // Fade in
+            els.emptyState.classList.add('hidden');
+            els.contentWrapper.classList.remove('hidden');
+
+            // Small reflow to ensure transition triggers
+            void els.contentWrapper.offsetWidth;
+
+            els.contentWrapper.style.opacity = '1';
+            els.promptContent.style.transform = 'translateY(0)';
+        }
+
+        function updateStatusUI(type, status, message) {
+            let row, indicator;
+
+            if (type === 'brand') {
+                row = els.brandRow;
+                indicator = row.querySelector('.status-text');
+            } else {
+                row = els.promptsRow;
+                indicator = row.querySelector('.status-text');
+            }
+
+            const colorClass = status === 'success' ? 'text-green-500' : 'text-gray-400';
+            const bgClass = status === 'success'
+                ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800/50'
+                : 'bg-gray-50 dark:bg-gray-800/50 border-transparent';
+
+            indicator.className = `status-text text-xs font-semibold uppercase tracking-wide transition-colors ${colorClass}`;
+            indicator.textContent = message;
+            row.className = `flex items-center justify-between p-2 rounded-xl border transition-all duration-300 ${bgClass}`;
+        }
+
+        // --- Core Logic ---
+        function processFiles(files) {
+            let processed = false;
+
+            Array.from(files).forEach(file => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const content = e.target.result;
+                    const name = file.name.toLowerCase();
+
+                    if (name.includes('brand') && name.includes('rules')) {
+                        state.brandRules = content;
+                        updateStatusUI('brand', 'success', 'Loaded');
+                        processed = true;
+                    } else {
+                        const match = name.match(/prompt\s*(\d)/i);
+                        if (match) {
+                            const num = parseInt(match[1]);
+                            if (num >= 1 && num <= 7) {
+                                state.prompts[num] = content;
+                                processed = true;
+                            }
+                        }
+                    }
+
+                    // Refresh UI counts
+                    const loadedCount = Object.values(state.prompts).filter(p => p !== '').length;
+                    updateStatusUI('prompts', loadedCount > 0 ? 'success' : 'default', `${loadedCount}/7 Loaded`);
+
+                    // Check if ready to initialize UI
+                    if (state.brandRules && loadedCount > 0) {
+                        initializeInterface();
+                    }
+                };
+                reader.readAsText(file);
+            });
+        }
+
+        function initializeInterface() {
+            els.tabsContainer.classList.remove('hidden');
+            els.tabsContainer.classList.add('animate-fade-in');
+            renderTabs();
+
+            // Select first available prompt
+            const firstAvailable = Object.keys(state.prompts).find(key => state.prompts[key]);
+            if (firstAvailable && state.currentPromptIndex === 0) {
+                selectPrompt(parseInt(firstAvailable));
+            }
+        }
+
+        function renderTabs() {
+            els.tabsWrapper.innerHTML = '';
+            for (let i = 1; i <= 7; i++) {
+                const isLoaded = state.prompts[i] !== '';
+                const btn = document.createElement('button');
+                const isActive = state.currentPromptIndex === i;
+
+                btn.className = `prompt-tab px-2 py-2 rounded-xl text-xs font-medium whitespace-nowrap flex items-center gap-2 transition-all duration-300 
+                    ${isActive
+                        ? 'active text-white'
+                        : isLoaded
+                            ? 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700/50'
+                            : 'opacity-30 cursor-not-allowed bg-gray-50 dark:bg-gray-800/30 text-gray-400'}`;
+
+                btn.innerHTML = `<span class="opacity-70">#${i}</span> ${state.promptTitles[i]}`;
+
+                if (isLoaded) {
+                    btn.onclick = () => selectPrompt(i);
+                }
+
+                els.tabsWrapper.appendChild(btn);
+            }
+        }
+
+        function selectPrompt(index) {
+            if (!state.prompts[index]) return;
+            state.currentPromptIndex = index;
+            renderTabs();
+
+            const fullPrompt = generatePrompt(index);
+
+            // Update Header Text
+            els.promptTitle.textContent = `Prompt ${index}: ${state.promptTitles[index]}`;
+            els.promptSubtitle.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span> Ready to copy`;
+            els.copyBtn.disabled = false;
+
+            // Show keyword badge if applied
+            if (state.keywordApplied) {
+                els.keywordBadge.classList.remove('hidden');
+                els.keywordBadge.classList.add('flex');
+            } else {
+                els.keywordBadge.classList.add('hidden');
+                els.keywordBadge.classList.remove('flex');
+            }
+
+            // Smooth Content Update
+            smoothContentSwap(() => {
+                els.promptContent.innerHTML = escapeHtml(fullPrompt);
+                if (state.keywordApplied && state.currentKeyword) {
+                    highlightKeyword();
+                }
+            });
+        }
+
+        function generatePrompt(index) {
+            const rawPrompt = state.prompts[index].replace(/\[Paste Brand Voice Block first\]\s*/gi, '');
+            return `${state.brandRules}\n\n${rawPrompt}`;
+        }
+
+        function highlightKeyword() {
+            if (!state.currentKeyword) return;
+            const text = els.promptContent.innerHTML;
+            // Escape regex special chars in keyword
+            const safeKeyword = state.currentKeyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const regex = new RegExp(`(${safeKeyword})`, 'gi');
+
+            // We must be careful not to replace inside HTML tags, but for a simple prompt tool, 
+            // replacing text content directly usually works unless keyword is "div" or "span". 
+            // Since it's a prompt generator, keywords are usually phrases. 
+
+            // To prevent breaking HTML, we use a placeholder strategy or careful regex. 
+            // For this specific tool, simple replacement is acceptable as the content is mostly text.
+            // However, to be safe, we only replace text nodes effectively if we used textContent. 
+            // But we need styling.
+            // Let's assume keywords don't look like HTML tags.
+
+            els.promptContent.innerHTML = text.replace(regex, '<span class="keyword-highlight">$1</span>');
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // --- Keyword Actions ---
+        els.applyBtn.addEventListener('click', () => {
+            const val = els.keywordInput.value.trim();
+            if (!val) {
+                els.keywordInput.classList.add('ring-2', 'ring-red-500');
+                setTimeout(() => els.keywordInput.classList.remove('ring-2', 'ring-red-500'), 500);
+                return;
+            }
+
+            // Animate Button
+            const originalHtml = els.applyBtn.innerHTML;
+            els.applyBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Processing`;
+
+            setTimeout(() => {
+                state.currentKeyword = val;
+                state.keywordApplied = true;
+
+                // Apply to all prompts in memory
+                Object.keys(state.prompts).forEach(key => {
+                    if (state.prompts[key]) {
+                        state.prompts[key] = state.prompts[key].replace(/\[ENTER TARGET KEYWORD\]/g, val);
+                    }
+                });
+
+                // Update UI
+                els.currentKeyword.textContent = val;
+                els.currentKeyword.classList.add('text-blue-600', 'dark:text-blue-400');
+                els.keywordStatus.textContent = "Active";
+                els.keywordStatus.classList.remove('text-gray-400');
+                els.keywordStatus.classList.add('text-green-500', 'dark:text-green-400');
+
+                els.applyBtn.innerHTML = `<i class="fas fa-check"></i> Applied!`;
+                els.applyBtn.classList.remove('btn-primary');
+                els.applyBtn.classList.add('bg-green-600', 'text-white');
+
+                setTimeout(() => {
+                    els.applyBtn.classList.add('btn-primary');
+                    els.applyBtn.classList.remove('bg-green-600', 'text-white');
+                    els.applyBtn.innerHTML = originalHtml;
+                }, 2000);
+
+                // Refresh current view
+                if (state.currentPromptIndex > 0) {
+                    selectPrompt(state.currentPromptIndex);
+                }
+            }, 400); // Fake delay for effect
+        });
+
+        els.resetBtn.addEventListener('click', () => {
+            // Reset State
+            state.brandRules = '';
+            state.prompts = { 1: '', 2: '', 3: '', 4: '', 5: '', 6: '', 7: '' };
+            state.currentKeyword = '';
+            state.keywordApplied = false;
+            state.currentPromptIndex = 0;
+
+            // Reset UI
+            els.fileInput.value = '';
+            els.keywordInput.value = '';
+            els.currentKeyword.textContent = 'None';
+            els.currentKeyword.classList.remove('text-blue-600', 'dark:text-blue-400');
+            els.keywordStatus.textContent = 'Standby';
+            els.keywordStatus.classList.add('text-gray-400');
+            els.keywordStatus.classList.remove('text-green-500');
+
+            updateStatusUI('brand', 'default', 'Missing');
+            updateStatusUI('prompts', 'default', '0/7 Loaded');
+
+            els.tabsContainer.classList.add('hidden');
+            els.copyBtn.disabled = true;
+            els.keywordBadge.classList.add('hidden');
+
+            els.promptTitle.textContent = 'Select a Prompt';
+            els.promptSubtitle.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-gray-300 dark:bg-gray-600"></span> Waiting for files...';
+
+            els.contentWrapper.style.opacity = '0';
+            setTimeout(() => {
+                els.contentWrapper.classList.add('hidden');
+                els.emptyState.classList.remove('hidden');
+                els.emptyState.style.opacity = '1';
+            }, 300);
+        });
+
+        els.copyBtn.addEventListener('click', () => {
+            const text = generatePrompt(state.currentPromptIndex);
+            navigator.clipboard.writeText(text).then(() => {
+                const original = els.copyBtn.innerHTML;
+                els.copyBtn.innerHTML = `<i class="fas fa-check"></i> Copied!`;
+                els.copyBtn.classList.add('bg-green-600');
+                setTimeout(() => {
+                    els.copyBtn.innerHTML = original;
+                    els.copyBtn.classList.remove('bg-green-600');
+                }, 2000);
+            });
+        });
+
+        // --- Event Listeners ---
+        els.uploadArea.addEventListener('click', () => els.fileInput.click());
+        els.fileInput.addEventListener('change', (e) => processFiles(e.target.files));
+
+        els.uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            els.uploadArea.classList.add('dragover');
+        });
+
+        els.uploadArea.addEventListener('dragleave', () => els.uploadArea.classList.remove('dragover'));
+
+        els.uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            els.uploadArea.classList.remove('dragover');
+            processFiles(e.dataTransfer.files);
+        });
+
+        els.keywordInput.addEventListener('keyup', (e) => {
+            if (e.key === 'Enter') els.applyBtn.click();
+        });
+
+        // Init
+        initTheme();
+
+
+// Add this function to your existing JavaScript
+function updateKeywordIcon() {
+    const icon = document.getElementById('keyword-icon');
+    const input = els.keywordInput;
+    
+    if (input.value.trim() !== '') {
+        icon.classList.add('fade-out');
+    } else {
+        icon.classList.remove('fade-out');
+    }
+}
+
+// Add event listeners for the keyword input
+els.keywordInput.addEventListener('input', updateKeywordIcon);
+els.keywordInput.addEventListener('change', updateKeywordIcon);
+
+// Also update when applying keyword (to handle programmatic changes)
+els.applyBtn.addEventListener('click', () => {
+    setTimeout(updateKeywordIcon, 100); // Small delay to ensure value is set
+});
+
+// Also update on reset
+els.resetBtn.addEventListener('click', () => {
+    setTimeout(updateKeywordIcon, 100);
+});
+
+    </script>
+</body>
+
+</html>
