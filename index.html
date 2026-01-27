@@ -98,7 +98,6 @@
         .prompt-tab.active {
             background: linear-gradient(135deg, #10b981 0%, #0d9488 100%);
             color: white;
-            /* box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3); */
         }
 
         /* --- Scrollbar --- */
@@ -313,7 +312,7 @@
             </div>
 
             <button id="theme-toggle"
-                class="theme-btn w-12 h-12 rounded-xl bg-white-200 dark:bg-black-800 flex items-center justify-center  transition-all">
+                class="theme-btn w-12 h-12 rounded-xl bg-white-200 dark:bg-dark-800 flex items-center justify-center transition-all">
                 <i id="theme-icon" class="fas fa-moon text-gray-600 dark:text-yellow-400 text-lg theme-icon-spin"></i>
             </button>
         </header>
@@ -324,13 +323,6 @@
 
                 <!-- Upload Card -->
                 <div class="container-card p-4 flex-1 flex flex-col">
-                    <!-- <div class="flex items-center justify-between mb-4">
-                        <h2 class="font-bold text-gray-800 dark:text-white text-lg">Source Files</h2>
-                        <div id="file-status-indicator"
-                            class="w-2.5 h-2.5 rounded-full bg-gray-300 dark:bg-gray-600 transition-colors duration-300">
-                        </div>
-                    </div> -->
-
                     <div class="upload-area p-8 text-center cursor-pointer rounded-xl group mb-6" id="upload-area">
                         <input type="file" id="file-input" accept=".txt" multiple class="hidden">
                         <div
@@ -386,7 +378,7 @@
                                 placeholder="e.g. Sustainable Coffee">
                             <div
                                 class="absolute right-3 top-2 text-gray-400 group-focus-within:text-greeb-500 transition-colors">
-                                <i id="keyword-icon" class="fas fa-key"></i> <!-- Added ID here -->
+                                <i id="keyword-icon" class="fas fa-key"></i>
                             </div>
                         </div>
 
@@ -506,25 +498,6 @@
             currentPromptIndex: 0,
             isDark: false
         };
-
-
-        // const state = {
-        //     brandRules: '',
-        //     prompts: { 1: '', 2: '', 3: '', 4: '', 5: '', 6: '', 7: '' },
-        //     promptTitles: {
-        //         1: 'Intro & Conclusion',
-        //         2: 'Heading Hierarchy & Keyword',
-        //         3: 'Section Formatting',
-        //         4: 'Redundancy Removal',
-        //         5: 'FAQ Optimization',
-        //         6: 'Meta Description',
-        //         7: 'Generate CTAs'
-        //     },
-        //     currentKeyword: '',
-        //     keywordApplied: false,
-        //     currentPromptIndex: 0,
-        //     isDark: false
-        // };
 
         // --- DOM Elements ---
         const els = {
@@ -737,19 +710,8 @@
         function highlightKeyword() {
             if (!state.currentKeyword) return;
             const text = els.promptContent.innerHTML;
-            // Escape regex special chars in keyword
             const safeKeyword = state.currentKeyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
             const regex = new RegExp(`(${safeKeyword})`, 'gi');
-
-            // We must be careful not to replace inside HTML tags, but for a simple prompt tool, 
-            // replacing text content directly usually works unless keyword is "div" or "span". 
-            // Since it's a prompt generator, keywords are usually phrases. 
-
-            // To prevent breaking HTML, we use a placeholder strategy or careful regex. 
-            // For this specific tool, simple replacement is acceptable as the content is mostly text.
-            // However, to be safe, we only replace text nodes effectively if we used textContent. 
-            // But we need styling.
-            // Let's assume keywords don't look like HTML tags.
 
             els.promptContent.innerHTML = text.replace(regex, '<span class="keyword-highlight">$1</span>');
         }
@@ -777,10 +739,18 @@
                 state.currentKeyword = val;
                 state.keywordApplied = true;
 
-                // Apply to all prompts in memory
+                // Regex to match [TARGET KEYWORD] or [ENTER TARGET KEYWORD] (case insensitive)
+                const keywordRegex = /\[(?:ENTER\s+)?TARGET\s+KEYWORD\]/gi;
+
+                // 1. Apply to Brand Rules
+                if (state.brandRules) {
+                    state.brandRules = state.brandRules.replace(keywordRegex, val);
+                }
+
+                // 2. Apply to all prompts in memory
                 Object.keys(state.prompts).forEach(key => {
                     if (state.prompts[key]) {
-                        state.prompts[key] = state.prompts[key].replace(/\[ENTER TARGET KEYWORD\]/g, val);
+                        state.prompts[key] = state.prompts[key].replace(keywordRegex, val);
                     }
                 });
 
@@ -880,32 +850,31 @@
         // Init
         initTheme();
 
+        // Add this function to your existing JavaScript
+        function updateKeywordIcon() {
+            const icon = document.getElementById('keyword-icon');
+            const input = els.keywordInput;
+            
+            if (input.value.trim() !== '') {
+                icon.classList.add('fade-out');
+            } else {
+                icon.classList.remove('fade-out');
+            }
+        }
 
-// Add this function to your existing JavaScript
-function updateKeywordIcon() {
-    const icon = document.getElementById('keyword-icon');
-    const input = els.keywordInput;
-    
-    if (input.value.trim() !== '') {
-        icon.classList.add('fade-out');
-    } else {
-        icon.classList.remove('fade-out');
-    }
-}
+        // Add event listeners for the keyword input
+        els.keywordInput.addEventListener('input', updateKeywordIcon);
+        els.keywordInput.addEventListener('change', updateKeywordIcon);
 
-// Add event listeners for the keyword input
-els.keywordInput.addEventListener('input', updateKeywordIcon);
-els.keywordInput.addEventListener('change', updateKeywordIcon);
+        // Also update when applying keyword (to handle programmatic changes)
+        els.applyBtn.addEventListener('click', () => {
+            setTimeout(updateKeywordIcon, 100); // Small delay to ensure value is set
+        });
 
-// Also update when applying keyword (to handle programmatic changes)
-els.applyBtn.addEventListener('click', () => {
-    setTimeout(updateKeywordIcon, 100); // Small delay to ensure value is set
-});
-
-// Also update on reset
-els.resetBtn.addEventListener('click', () => {
-    setTimeout(updateKeywordIcon, 100);
-});
+        // Also update on reset
+        els.resetBtn.addEventListener('click', () => {
+            setTimeout(updateKeywordIcon, 100);
+        });
 
     </script>
 </body>
