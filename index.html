@@ -9,7 +9,7 @@
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Configure Tailwind Dark Mode strategy -->
-     
+
     <script>
         tailwind.config = {
             darkMode: 'class',
@@ -161,7 +161,7 @@
             color: #5eead4;
         }
 
-        
+
 
         /* Brand rules icon */
         .bg-indigo-100 {
@@ -393,47 +393,43 @@
                             </button>
                         </div>
 
- <div
-    class="pt-5 border-t border-gray-200 dark:border-gray-700 grid grid-cols-1 gap-3">
+                        <div class="pt-5 border-t border-gray-200 dark:border-gray-700 grid grid-cols-1 gap-3">
 
-    <!-- Current Keyword -->
-    <div
-        class="p-3 rounded-2xl bg-gradient-to-br from-gray-50 to-white dark:from-gray-800/60 dark:to-gray-900/40">
-        <div class="flex items-center justify-between">
-            <div
-                class="text-[10px] text-gray-500 dark:text-gray-400 uppercase font-semibold tracking-widest">
-                Current
-            </div>
-            <span class="text-[9px] text-gray-400 dark:text-gray-500">Keyword</span>
-        </div>
-        <div
-            id="current-keyword"
-            class="mt-1 text-sm font-bold text-gray-900 dark:text-white truncate">
-            None
-        </div>
-    </div>
+                            <!-- Current Keyword -->
+                            <div
+                                class="p-3 rounded-2xl bg-gradient-to-br from-gray-50 to-white dark:from-gray-800/60 dark:to-gray-900/40">
+                                <div class="flex items-center justify-between">
+                                    <div
+                                        class="text-[10px] text-gray-500 dark:text-gray-400 uppercase font-semibold tracking-widest">
+                                        Current
+                                    </div>
+                                    <span class="text-[9px] text-gray-400 dark:text-gray-500">Keyword</span>
+                                </div>
+                                <div id="current-keyword"
+                                    class="mt-1 text-sm font-bold text-gray-900 dark:text-white truncate">
+                                    None
+                                </div>
+                            </div>
 
-    <!-- Status -->
-    <div
-        class="p-3 rounded-2xl bg-gradient-to-br from-gray-50 to-white dark:from-gray-800/60 dark:to-gray-900/40">
-        <div class="flex items-center justify-between">
-            <div
-                class="text-[10px] text-gray-500 dark:text-gray-400 uppercase font-semibold tracking-widest">
-                Status
-            </div>
-            <span class="flex items-center gap-1 text-[9px] text-gray-400 dark:text-gray-500">
-                <span class="w-2 h-2 rounded-full bg-gray-400"></span>
-                Live
-            </span>
-        </div>
-        <div
-            id="keyword-status"
-            class="mt-1 text-sm font-bold text-gray-500">
-            Standby
-        </div>
-    </div>
+                            <!-- Status -->
+                            <div
+                                class="p-3 rounded-2xl bg-gradient-to-br from-gray-50 to-white dark:from-gray-800/60 dark:to-gray-900/40">
+                                <div class="flex items-center justify-between">
+                                    <div
+                                        class="text-[10px] text-gray-500 dark:text-gray-400 uppercase font-semibold tracking-widest">
+                                        Status
+                                    </div>
+                                    <span class="flex items-center gap-1 text-[9px] text-gray-400 dark:text-gray-500">
+                                        <span class="w-2 h-2 rounded-full bg-gray-400"></span>
+                                        Live
+                                    </span>
+                                </div>
+                                <div id="keyword-status" class="mt-1 text-sm font-bold text-gray-500">
+                                    Standby
+                                </div>
+                            </div>
 
-</div>
+                        </div>
 
                     </div>
                 </div>
@@ -880,7 +876,7 @@
         function updateKeywordIcon() {
             const icon = document.getElementById('keyword-icon');
             const input = els.keywordInput;
-            
+
             if (input.value.trim() !== '') {
                 icon.classList.add('fade-out');
             } else {
