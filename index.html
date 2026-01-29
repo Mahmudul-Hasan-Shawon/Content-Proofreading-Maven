@@ -19,6 +19,10 @@
                         secondary: '#64748b',
                         emerald: {
                             450: '#10b981',
+                        },
+                        teal: {
+                            500: '#14b8a6',
+                            600: '#0d9488',
                         }
                     },
                     fontFamily: {
@@ -297,12 +301,35 @@
             transform: rotate(180deg);
         }
 
-        /* Fade utility */
-        .fade-out {
+        /* Toast Notification */
+        #toast {
+            visibility: hidden;
+            min-width: 250px;
+            background-color: #10b981;
+            color: #fff;
+            text-align: center;
+            border-radius: 8px;
+            padding: 12px;
+            position: fixed;
+            z-index: 100;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            font-size: 14px;
+            font-weight: 500;
             opacity: 0;
-            transform: translateX(5px);
-            pointer-events: none;
-            transition: opacity 0.3s ease, transform 0.3s ease;
+            transition: opacity 0.3s, bottom 0.3s;
+        }
+
+        #toast.show {
+            visibility: visible;
+            opacity: 1;
+            bottom: 50px;
+        }
+
+        #toast.error {
+            background-color: #ef4444;
         }
     </style>
 </head>
@@ -325,10 +352,16 @@
             </div>
 
             <div class="flex items-center gap-3">
-                <!-- NEW: Prompt Rules Button -->
+                <!-- Prompt Rules Button -->
                 <button id="rules-btn" title="Prompt Instructions"
                     class="w-12 h-12 rounded-full bg-white dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 flex items-center justify-center transition-all hover:bg-blue-100 dark:hover:bg-blue-800/40 hover:scale-105 text-blue-600 dark:text-blue-400">
                     <i class="fas fa-book-open text-lg"></i>
+                </button>
+
+                <!-- GitHub Auto Load Button -->
+                <button id="auto-load-btn" title="Load from GitHub"
+                    class="w-12 h-12 rounded-full bg-white dark:bg-teal-900/20 border border-teal-200 dark:border-teal-800 flex items-center justify-center transition-all hover:bg-teal-100 dark:hover:bg-teal-800/40 hover:scale-105 text-teal-600 dark:text-teal-400 relative group">
+                    <i class="fas fa-cloud-download-alt text-lg"></i>
                 </button>
 
                 <!-- CTA Parser Button -->
@@ -418,8 +451,6 @@
                                 </button>
                             </div>
                         </div>
-
-
                     </div>
                 </div>
 
@@ -523,8 +554,7 @@
                                 <i class="fas fa-cube text-3xl text-gray-400 dark:text-gray-600"></i>
                             </div>
                             <h3 class="text-lg font-bold text-gray-700 dark:text-gray-300 mb-2">Workspace Empty</h3>
-                            <p class="text-sm text-gray-500 dark:text-gray-500 max-w-xs mx-auto">Upload your Brand Rules
-                                and Prompt text files to generate optimized content.</p>
+                            <p class="text-sm text-gray-500 dark:text-gray-500 max-w-xs mx-auto">Drag & Drop your files or click the Cloud icon in the header to auto-load from GitHub.</p>
                         </div>
 
                         <!-- Text Content -->
@@ -666,6 +696,9 @@ CTA: **And this text**"></textarea>
         </div>
     </div>
 
+    <!-- Toast Notification -->
+    <div id="toast">Demo content loaded successfully!</div>
+
     <script>
         // --- State Management ---
         const state = {
@@ -679,15 +712,6 @@ CTA: **And this text**"></textarea>
                 5: 'FAQ',
                 6: 'Meta Description',
                 7: 'CTA'
-            },
-            promptRules: {
-                1: 'Prompt + Take only the H1 and final H2 (Conclusion).',
-                2: 'Just paste the 2nd Prompt',
-                3: 'Take the 1st H2 up to the H2 immediately before the Conclusion (NB: final H2 is Conclusion).',
-                4: 'Prompt + Full content (Key Takeaways to FAQ)',
-                5: 'Prompt + ALL FAQs',
-                6: 'Prompt + H1 to Conclusion, then copy optimized meta description and paste it into the sheet.',
-                7: 'Prompt + Full content (Key Takeaways to FAQ)'
             },
             variables: {
                 keyword: '',
@@ -732,6 +756,9 @@ CTA: **And this text**"></textarea>
             brandStatusInd: document.getElementById('brand-status-indicator'),
             promptsStatusInd: document.getElementById('prompts-status-indicator'),
 
+            // Auto Load Button
+            autoLoadBtn: document.getElementById('auto-load-btn'),
+
             // Rules Modal
             rulesBtn: document.getElementById('rules-btn'),
             rulesModal: document.getElementById('rules-modal'),
@@ -749,7 +776,10 @@ CTA: **And this text**"></textarea>
             ctaInput: document.getElementById('cta-input'),
             ctaOutputContainer: document.getElementById('cta-output-container'),
             ctaOutput: document.getElementById('cta-output'),
-            ctaCopyBtn: document.getElementById('cta-copy-btn')
+            ctaCopyBtn: document.getElementById('cta-copy-btn'),
+            
+            // Toast
+            toast: document.getElementById('toast')
         };
 
         // --- Theme Logic ---
@@ -819,30 +849,36 @@ CTA: **And this text**"></textarea>
             indicator.className = `w-2 h-2 rounded-full transition-colors ${dotClass}`;
         }
 
-        // --- Core Logic ---
+        // --- Shared Logic: Process a file's content based on its filename ---
+        function handleFileContent(filename, content) {
+            const name = filename.toLowerCase();
+
+            // Brand Rules Check
+            if (name.includes('brand') && name.includes('rules')) {
+                state.brandRules = content;
+                updateStatusUI('brand', 'success', 'Loaded');
+                return true; // Updated
+            }
+
+            // Prompt Check
+            const match = name.match(/prompt\s*(\d)/i);
+            if (match) {
+                const num = parseInt(match[1]);
+                if (num >= 1 && num <= 7) {
+                    state.prompts[num] = content;
+                    return true; // Updated
+                }
+            }
+            return false;
+        }
+
+        // --- Core Logic: Drag & Drop ---
         function processFiles(files) {
             Array.from(files).forEach(file => {
                 const reader = new FileReader();
                 reader.onload = (e) => {
                     const content = e.target.result;
-                    const name = file.name.toLowerCase();
-
-                    // --- STRICT EXCLUSION LOGIC ---
-                    const isBrandRules = name.includes('brand') && name.includes('rules');
-
-                    if (isBrandRules) {
-                        state.brandRules = content;
-                        updateStatusUI('brand', 'success', 'Loaded');
-                        return;
-                    }
-
-                    const match = name.match(/prompt\s*(\d)/i);
-                    if (match) {
-                        const num = parseInt(match[1]);
-                        if (num >= 1 && num <= 7) {
-                            state.prompts[num] = content;
-                        }
-                    }
+                    handleFileContent(file.name, content);
 
                     const loadedCount = Object.values(state.prompts).filter(p => p !== '').length;
                     updateStatusUI('prompts', loadedCount > 0 ? 'success' : 'default', `${loadedCount}/7 Loaded`);
@@ -853,6 +889,75 @@ CTA: **And this text**"></textarea>
                 };
                 reader.readAsText(file);
             });
+        }
+
+        // --- NEW: GitHub Auto Load Logic (Hardcoded URLs) ---
+        async function loadFromGitHub() {
+            const icon = els.autoLoadBtn.querySelector('i');
+            const originalClass = icon.className;
+            icon.className = "fas fa-spinner fa-spin text-lg";
+
+            // Hardcoded URLs from User (Updated with PROMPT 2)
+            const urls = [
+                'https://raw.githubusercontent.com/Mahmudul-Hasan-Shawon/Content-Proofreading-Maven/refs/heads/main/BRAND%20%26%20CONTENT%20RULES.txt',
+                'https://raw.githubusercontent.com/Mahmudul-Hasan-Shawon/Content-Proofreading-Maven/refs/heads/main/PROMPT%201.txt',
+                'https://raw.githubusercontent.com/Mahmudul-Hasan-Shawon/Content-Proofreading-Maven/refs/heads/main/PROMPT%202.txt',
+                'https://raw.githubusercontent.com/Mahmudul-Hasan-Shawon/Content-Proofreading-Maven/refs/heads/main/PROMPT%203.txt',
+                'https://raw.githubusercontent.com/Mahmudul-Hasan-Shawon/Content-Proofreading-Maven/refs/heads/main/PROMPT%204.txt',
+                'https://raw.githubusercontent.com/Mahmudul-Hasan-Shawon/Content-Proofreading-Maven/refs/heads/main/PROMPT%205.txt',
+                'https://raw.githubusercontent.com/Mahmudul-Hasan-Shawon/Content-Proofreading-Maven/refs/heads/main/PROMPT%206.txt',
+                'https://raw.githubusercontent.com/Mahmudul-Hasan-Shawon/Content-Proofreading-Maven/refs/heads/main/PROMPT%207.txt'
+            ];
+
+            let successCount = 0;
+            let failCount = 0;
+
+            for (const url of urls) {
+                try {
+                    const response = await fetch(url);
+                    if (!response.ok) {
+                        console.warn(`Failed to fetch ${url}: ${response.status}`);
+                        failCount++;
+                    } else {
+                        const text = await response.text();
+                        
+                        // Decode URL to get filename (e.g., "PROMPT%201.txt" -> "PROMPT 1.txt")
+                        const filename = decodeURIComponent(url.split('/').pop());
+                        
+                        handleFileContent(filename, text);
+                        successCount++;
+                    }
+                } catch (error) {
+                    console.error(`Error fetching ${url}:`, error);
+                    failCount++;
+                }
+            }
+
+            // Update UI State
+            const loadedCount = Object.values(state.prompts).filter(p => p !== '').length;
+            updateStatusUI('prompts', loadedCount > 0 ? 'success' : 'default', `${loadedCount}/7 Loaded`);
+
+            if (state.brandRules && loadedCount > 0) {
+                initializeInterface();
+            }
+
+            // Reset Button & Feedback
+            icon.className = originalClass;
+            
+            if (failCount > 0) {
+                showToast(`Loaded ${successCount} files. Failed: ${failCount}`, true);
+            } else {
+                showToast("All files loaded from GitHub!");
+            }
+        }
+
+        function showToast(msg, isError = false) {
+            els.toast.textContent = msg;
+            if (isError) els.toast.classList.add('error');
+            else els.toast.classList.remove('error');
+            
+            els.toast.className = "show";
+            setTimeout(() => { els.toast.className = els.toast.className.replace("show", ""); }, 3000);
         }
 
         function initializeInterface() {
@@ -872,7 +977,6 @@ CTA: **And this text**"></textarea>
                 const btn = document.createElement('button');
                 const isActive = state.currentPromptIndex === i;
 
-                // Changed flex-col to flex-row to align Number and Text side-by-side
                 btn.className = `prompt-tab group px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap flex flex-row items-center justify-center gap-2 transition-all duration-300
                     ${isActive
                         ? 'active text-white'
@@ -880,7 +984,6 @@ CTA: **And this text**"></textarea>
                             ? 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700/50'
                             : 'opacity-30 cursor-not-allowed bg-gray-50 dark:bg-gray-800/30 text-gray-400'}`;
 
-                // Removed Tooltip HTML, kept simple text
                 btn.innerHTML = `<span class="opacity-70">#${i}</span>${state.promptTitles[i]}`;
 
                 if (isLoaded) {
@@ -1082,6 +1185,9 @@ CTA: **And this text**"></textarea>
         }
 
         // --- Event Listeners ---
+
+        // Auto Load Listener
+        els.autoLoadBtn.addEventListener('click', loadFromGitHub);
 
         [els.pillKeyword, els.pillH1, els.pillTopic].forEach(input => {
             input.addEventListener('keyup', (e) => {
