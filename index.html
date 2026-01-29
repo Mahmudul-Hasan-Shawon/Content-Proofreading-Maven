@@ -312,7 +312,7 @@
             background-color: #10b981;
             color: #fff;
             text-align: center;
-            border-radius: 14px;
+            border-radius: 16px;
             padding: 12px;
             position: fixed;
             z-index: 100;
@@ -336,20 +336,21 @@
             background-color: #ef4444;
         }
 
-        /* --- Changes Parser Specific Styles --- */
-        .changes-input-area {
+        /* --- Shared Parser Styles (Changes & CTA) --- */
+        .parser-input-area {
             font-family: 'Inter', sans-serif;
             font-size: 0.875rem;
             line-height: 1.5;
             resize: none;
         }
 
-        .changes-card-item {
+        .parser-card-item {
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
+            border-left: 4px solid transparent;
         }
-
-        .changes-card-item:hover {
+        
+        .parser-card-item:hover {
             transform: translateX(4px);
         }
 
@@ -357,11 +358,13 @@
         .card-copied-fully {
             background-color: #fef2f2; /* red-50 */
             border-color: #fecaca; /* red-200 */
+            border-left-color: #ef4444 !important;
         }
         
         .dark .card-copied-fully {
             background-color: rgba(153, 27, 27, 0.15); /* red-900/15 */
             border-color: rgba(239, 68, 68, 0.3); /* red-500/30 */
+            border-left-color: #f87171 !important;
         }
 
         .card-copied-fully .card-text {
@@ -714,7 +717,7 @@
         </div>
     </div>
 
-    <!-- CTA Parser Modal -->
+    <!-- CTA Parser Modal (Redesigned Side-by-Side) -->
     <div id="cta-modal" class="fixed inset-0 z-50 hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
         <!-- Backdrop -->
         <div class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm transition-opacity opacity-0" id="cta-modal-backdrop"></div>
@@ -722,45 +725,85 @@
         <div class="fixed inset-0 z-10 overflow-y-auto">
             <div class="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
                 <!-- Modal Panel -->
-                <div class="relative transform overflow-hidden rounded-2xl bg-white dark:bg-gray-800 text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-2xl border border-gray-200 dark:border-gray-700 scale-95 opacity-0" id="cta-modal-panel">
+                <div class="relative transform overflow-hidden rounded-2xl bg-white dark:bg-gray-800 text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-6xl border border-gray-200 dark:border-gray-700 scale-95 opacity-0" id="cta-modal-panel">
                     
-                    <div class="bg-white dark:bg-gray-800 px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
-                        <div class="sm:flex sm:items-start">
+                    <div class="bg-white dark:bg-gray-800 px-4 pb-4 pt-5 sm:p-6 sm:pb-4 h-[85vh] flex flex-col">
+                        <div class="sm:flex sm:items-start mb-4 flex-shrink-0">
                             <div class="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-indigo-100 dark:bg-indigo-900/30 sm:mx-0 sm:h-10 sm:w-10">
-                                <i class="fas fa-robot text-indigo-600 dark:text-indigo-400"></i>
+                                <i class="fas fa-list-check text-indigo-600 dark:text-indigo-400"></i>
                             </div>
-                            <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left w-full">
-                                <h3 class="text-base font-semibold leading-6 text-gray-900 dark:text-white" id="modal-title">CTA Parser</h3>
-                                <div class="mt-2">
-                                    <p class="text-sm text-gray-500 dark:text-gray-400 mb-2">Paste your CTA section text below. We will extract only the bold text after "CTA:".</p>
-                                    
-                                    <textarea id="cta-input" rows="10" 
-                                        class="w-full rounded-xl border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-900 dark:text-white sm:text-sm py-3 px-4 font-mono text-xs"
-                                        placeholder="# Section CTAs - Title
-
-**After H2: "..."**
-CTA: **Extract this text**
-
-**After H2: "..."**
-CTA: **And this text**"></textarea>
-                                    
-                                    <!-- Output Area -->
-                                    <div id="cta-output-container" class="hidden mt-4">
-                                        <div class="flex justify-between items-center mb-2">
-                                            <span class="text-xs font-bold text-gray-500 uppercase">Extracted CTAs</span>
-                                            <button id="cta-copy-btn" class="text-xs text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 font-semibold">Copy All</button>
-                                        </div>
-                                        <div id="cta-output" class="w-full rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 p-3 text-sm text-gray-800 dark:text-gray-200 font-semibold whitespace-pre-wrap"></div>
+                            <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left w-full flex justify-between items-center">
+                                <div>
+                                    <h3 class="text-base font-semibold leading-6 text-gray-900 dark:text-white" id="modal-title">CTA Parser</h3>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Extract bold text after "CTA:" marker.</p>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                     <div id="cta-status" class="text-xs text-gray-600 px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded-xl">
+                                        Ready
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                    <div class="bg-gray-50 dark:bg-gray-700/30 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
-                        <button type="button" id="cta-process-btn"
-                            class="inline-flex w-full justify-center rounded-full bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 sm:ml-3 sm:w-auto">Process Text</button>
-                        <button type="button" id="cta-close-btn"
-                            class="mt-3 inline-flex w-full justify-center rounded-full bg-white dark:bg-gray-800 px-3 py-2 text-sm font-semibold text-gray-900 dark:text-gray-200 shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 sm:mt-0 sm:w-auto">Close</button>
+
+                        <!-- Main Content: Grid (Changes Parser Style) -->
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 flex-grow overflow-hidden mt-4">
+                            <!-- Left: Input -->
+                            <div class="flex flex-col h-full min-h-0">
+                                <!-- Header: Left Side Text, Right Side Buttons -->
+                                <div class="mb-2 mt-2 flex justify-between items-end">
+                                    <div class="flex flex-col">
+                                        <label class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Input Text</label>
+                                        <span class="text-[10px] text-gray-400" id="cta-line-count">0 lines</span>
+                                    </div>
+                                    
+                                    <!-- Top Right Actions -->
+                                    <div class="flex gap-2">
+                                        <button id="cta-reset-btn" class="px-3 py-1.5 bg-red-100 dark:bg-red-900/30 hover:bg-red-200 dark:hover:bg-red-900/50 text-red-700 dark:text-red-400 text-xs font-medium rounded-xl transition flex items-center gap-1.5 transition-all duration-300 hover:shadow-lg hover:shadow-gray-500/25 hover:-translate-y-0.5 active:translate-y-0" title="Reset All">
+                                            <i class="fas fa-undo"></i> Reset
+                                        </button>
+                                        <button id="cta-clear-btn" class="bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 text-sm font-medium px-3 py-1.5 rounded-xl transition transition-all duration-300 hover:shadow-lg hover:shadow-gray-500/25 hover:-translate-y-0.5 active:translate-y-0" title="Clear Input">
+                                            Clear
+                                        </button>
+                                        <button id="cta-process-btn" class="bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white text-sm font-medium px-4 py-1.5 rounded-xl shadow-lg transition-all flex items-center gap-2 transition-all duration-300 hover:shadow-lg hover:shadow-violet-500/25 hover:-translate-y-0.5 active:translate-y-0">
+                                            <i class="fas fa-magic"></i> Parse
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <div class="relative flex-grow">
+                                    <textarea id="cta-input" rows="12"
+                                        class="parser-input-area w-full h-full p-4 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-0 focus:ring-indigo-400 focus:border-indigo-400 dark:bg-gray-900 dark:text-white transition resize-none custom-scrollbar"
+                                        placeholder="Paste your text here..."></textarea>
+                                </div>
+                            </div>
+
+                            <!-- Right: Output -->
+                            <div class="flex flex-col h-full min-h-0 bg-gray-50 dark:bg-gray-900/50 rounded-xl border border-gray-200 dark:border-gray-700">
+                                <!-- Header: Left Side Text/Count, Right Side Copy -->
+                                <div class="px-4 py-3 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center bg-white dark:bg-gray-800 rounded-t-xl">
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Parsed Results</span>
+                                        <span id="cta-result-count" class="text-[10px] font-medium bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200 px-2 py-0.5 rounded-md">0 CTAs</span>
+                                    </div>
+                                    <button id="cta-copy-all-btn" class="text-xs px-3 py-1.5 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-medium rounded-xl hover:from-green-600 hover:to-emerald-700 transition shadow-sm flex items-center gap-2 btn-copy-progress transition-all duration-300 hover:shadow-lg hover:shadow-gray-500/25 hover:-translate-y-0.5 active:translate-y-0">
+                                        <span>Copy All</span>
+                                    </button>
+                                </div>
+
+                                <div id="cta-results-container" class="flex-grow overflow-y-auto p-4 custom-scrollbar space-y-3">
+                                    <!-- Empty State -->
+                                    <div id="cta-empty-state" class="h-full flex flex-col items-center justify-center text-center">
+                                        <i class="fas fa-bullhorn text-4xl text-gray-300 dark:text-gray-700 mb-3"></i>
+                                        <p class="text-sm text-gray-500 dark:text-gray-400">Extracted CTAs will appear here</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4 sm:flex sm:flex-row-reverse sm:px-0 flex-shrink-0">
+                            <button type="button" id="cta-close-btn"
+                                class="inline-flex w-full justify-center rounded-full bg-gray-100 dark:bg-gray-700 px-4 py-2 text-sm font-semibold text-gray-900 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600 transition sm:w-auto ">Close</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -788,7 +831,7 @@ CTA: **And this text**"></textarea>
                                     <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Extract changed headings from your text.</p>
                                 </div>
                                 <div class="flex items-center gap-3">
-                                     <div id="changes-status" class="text-xs text-gray-600 px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded-lg">
+                                     <div id="changes-status" class="text-xs text-gray-600 px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded-xl">
                                         Ready
                                     </div>
                                 </div>
@@ -800,7 +843,7 @@ CTA: **And this text**"></textarea>
                             <!-- Left: Input -->
                             <div class="flex flex-col h-full min-h-0">
                                 <!-- Header: Left Side Text, Right Side Buttons -->
-                                <div class="mb-2 flex justify-between items-end">
+                                <div class="mb-2 mt-2 flex justify-between items-end">
                                     <div class="flex flex-col">
                                         <label class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Input Text</label>
                                         <span class="text-[10px] text-gray-400" id="changes-line-count">0 lines</span>
@@ -808,13 +851,13 @@ CTA: **And this text**"></textarea>
                                     
                                     <!-- Top Right Actions -->
                                     <div class="flex gap-2">
-                                        <button id="changes-reset-btn" class="px-3 py-1.5 bg-red-100 dark:bg-red-900/30 hover:bg-red-200 dark:hover:bg-red-900/50 text-red-700 dark:text-red-400 text-xs font-medium rounded-lg transition flex items-center gap-1.5" title="Reset All">
+                                        <button id="changes-reset-btn" class="px-3 py-1.5 bg-red-100 dark:bg-red-900/30 hover:bg-red-200 dark:hover:bg-red-900/50 text-red-700 dark:text-red-400 text-xs font-medium rounded-xl transition flex items-center gap-1.5 transition-all duration-300 hover:shadow-lg hover:shadow-gray-500/25 hover:-translate-y-0.5 active:translate-y-0" title="Reset All">
                                             <i class="fas fa-undo"></i> Reset
                                         </button>
-                                        <button id="changes-clear-btn" class="bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 text-sm font-medium px-3 py-1.5 rounded-lg transition" title="Clear Input">
+                                        <button id="changes-clear-btn" class="bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 text-sm font-medium px-3 py-1.5 rounded-xl transition transition-all duration-300 hover:shadow-lg hover:shadow-gray-500/25 hover:-translate-y-0.5 active:translate-y-0" title="Clear Input">
                                             Clear
                                         </button>
-                                        <button id="changes-parse-btn" class="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white text-sm font-medium px-4 py-1.5 rounded-lg shadow-lg transition-all flex items-center gap-2">
+                                        <button id="changes-parse-btn" class="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white text-sm font-medium px-4 py-1.5 rounded-xl shadow-lg transition-all flex items-center gap-2 transition-all duration-300 hover:shadow-lg hover:shadow-violet-500/25 hover:-translate-y-0.5 active:translate-y-0">
                                             <i class="fas fa-magic"></i> Parse
                                         </button>
                                     </div>
@@ -822,7 +865,7 @@ CTA: **And this text**"></textarea>
                                 
                                 <div class="relative flex-grow">
                                     <textarea id="changes-input" rows="12"
-                                        class="changes-input-area w-full h-full p-4 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-purple-400 focus:border-purple-400 dark:bg-gray-900 dark:text-white transition resize-none custom-scrollbar"
+                                        class="parser-input-area w-full h-full p-4 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-0 focus:ring-purple-400 focus:border-purple-400 dark:bg-gray-900 dark:text-white transition resize-none custom-scrollbar"
                                         placeholder="Paste your text with CHANGED: format here..."></textarea>
                                 </div>
                             </div>
@@ -835,7 +878,7 @@ CTA: **And this text**"></textarea>
                                         <span class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Parsed Results</span>
                                         <span id="changes-result-count" class="text-[10px] font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200 px-2 py-0.5 rounded-md">0 items</span>
                                     </div>
-                                    <button id="changes-copy-all-btn" class="text-xs px-3 py-1.5 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-medium rounded-lg hover:from-green-600 hover:to-emerald-700 transition shadow-sm flex items-center gap-2 btn-copy-progress">
+                                    <button id="changes-copy-all-btn" class="text-xs px-3 py-1.5 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-medium rounded-xl hover:from-green-600 hover:to-emerald-700 transition shadow-sm flex items-center gap-2 btn-copy-progress">
                                         <span>Copy All</span>
                                     </button>
                                 </div>
@@ -885,7 +928,9 @@ CTA: **And this text**"></textarea>
             currentPromptIndex: 0,
             isDark: false,
             // Changes Parser State
-            copiedItems: {} // { cardId: { original: boolean, changed: boolean } }
+            changesCopiedItems: {},
+            // CTA Parser State
+            ctaCopiedItems: {}
         };
 
         // --- DOM Elements ---
@@ -940,9 +985,14 @@ CTA: **And this text**"></textarea>
             ctaCloseBtn: document.getElementById('cta-close-btn'),
             ctaProcessBtn: document.getElementById('cta-process-btn'),
             ctaInput: document.getElementById('cta-input'),
-            ctaOutputContainer: document.getElementById('cta-output-container'),
-            ctaOutput: document.getElementById('cta-output'),
-            ctaCopyBtn: document.getElementById('cta-copy-btn'),
+            ctaResultsContainer: document.getElementById('cta-results-container'),
+            ctaResetBtn: document.getElementById('cta-reset-btn'),
+            ctaClearBtn: document.getElementById('cta-clear-btn'),
+            ctaEmptyState: document.getElementById('cta-empty-state'),
+            ctaStatus: document.getElementById('cta-status'),
+            ctaLineCount: document.getElementById('cta-line-count'),
+            ctaResultCount: document.getElementById('cta-result-count'),
+            ctaCopyAllBtn: document.getElementById('cta-copy-all-btn'),
 
             // Changes Modal
             changesModalBtn: document.getElementById('changes-parser-btn'),
@@ -1103,7 +1153,6 @@ CTA: **And this text**"></textarea>
                     } else {
                         const text = await response.text();
                         
-                        // Decode URL to get filename (e.g., "PROMPT%201.txt" -> "PROMPT 1.txt")
                         const filename = decodeURIComponent(url.split('/').pop());
                         
                         handleFileContent(filename, text);
@@ -1191,15 +1240,10 @@ CTA: **And this text**"></textarea>
         }
 
         function generatePrompt(index) {
-            // Clean up specific prompt artifacts
             let rawPrompt = state.prompts[index].replace(/\[Paste Brand Voice Block first\]\s*/gi, '');
-
-            // SPECIAL CASE: Tab 6 (Meta Description) - Do NOT include Brand Rules
             if (index === 6) {
                 return processText(rawPrompt);
             }
-
-            // Default behavior: Brand Rules + Prompt
             const combined = `${state.brandRules}\n\n${rawPrompt}`;
             return processText(combined);
         }
@@ -1213,7 +1257,6 @@ CTA: **And this text**"></textarea>
 
             els.promptTitle.textContent = `Prompt ${index}: ${state.promptTitles[index]}`;
 
-            // Update subtitle based on brand rules inclusion
             if (index === 6) {
                 els.promptSubtitle.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> Brand Rules Excluded`;
             } else {
@@ -1336,35 +1379,179 @@ CTA: **And this text**"></textarea>
             els.ctaModalBackdrop.classList.add('opacity-0');
             els.ctaModalPanel.classList.remove('scale-100', 'opacity-100');
             els.ctaModalPanel.classList.add('scale-95', 'opacity-0');
-            
             setTimeout(() => {
                 els.ctaModal.classList.add('hidden');
-                els.ctaOutputContainer.classList.add('hidden');
-                els.ctaInput.value = '';
             }, 300);
         }
 
-        function processCTA() {
-            const rawText = els.ctaInput.value;
-            const lines = rawText.split('\n');
-            const extractedCTAs = [];
+        function resetCtaParser() {
+            els.ctaInput.value = '';
+            els.ctaResultsContainer.innerHTML = '';
+            els.ctaEmptyState.classList.remove('hidden');
+            els.ctaResultCount.textContent = `0 CTAs`;
+            els.ctaResultCount.className = 'text-[10px] font-medium bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200 px-2 py-0.5 rounded-md';
+            state.ctaCopiedItems = {};
+            showCtaStatus('Ready', 'default');
+            updateCtaLineCount();
+        }
 
-            lines.forEach(line => {
-                if (line.trim().toLowerCase().startsWith('cta:')) {
+        function processCTA() {
+            const text = els.ctaInput.value.trim();
+            if (!text) {
+                showCtaStatus('Please paste text first', 'error');
+                return;
+            }
+
+            showCtaStatus('Parsing...', 'info');
+            els.ctaResultsContainer.innerHTML = '';
+            els.ctaEmptyState.classList.add('hidden');
+            
+            const lines = text.split('\n');
+            const ctas = [];
+            state.ctaCopiedItems = {}; // Reset copy state
+            
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (line.toLowerCase().startsWith('cta:')) {
                     const match = line.match(/\*\*(.*?)\*\*/);
                     if (match && match[1]) {
-                        extractedCTAs.push(match[1]);
+                        ctas.push(match[1]);
+                        // CTA parser only has one "copy" action per card, so we track simple bool or just rely on UI state
+                        state.ctaCopiedItems[ctas.length] = false; 
                     }
                 }
-            });
-
-            if (extractedCTAs.length > 0) {
-                els.ctaOutput.textContent = extractedCTAs.join('\n\n');
-                els.ctaOutputContainer.classList.remove('hidden');
+            }
+            
+            if (ctas.length === 0) {
+                els.ctaEmptyState.classList.remove('hidden');
+                showCtaStatus('No CTAs found', 'warning');
+                els.ctaResultCount.textContent = `0 CTAs`;
+                els.ctaResultCount.className = 'bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-400 px-2 py-0.5 rounded-md';
             } else {
-                alert('No CTAs found. Ensure lines start with "CTA:" and contain bold text (**...**).');
+                displayCtaCards(ctas);
+                showCtaStatus(`Found ${ctas.length} CTAs`, 'success');
+                els.ctaResultCount.textContent = `${ctas.length} CTAs`;
+                els.ctaResultCount.className = 'text-[10px] font-medium bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200 px-2 py-0.5 rounded-md';
             }
         }
+
+        function displayCtaCards(ctas) {
+            ctas.forEach((cta, index) => {
+                const cardId = index + 1; // Starts from CTA #1
+                const card = document.createElement('div');
+                card.id = `cta-card-${cardId}`;
+                card.className = 'parser-card-item bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700 shadow-sm';
+
+                card.innerHTML = `
+                    <div class="flex justify-between items-start mb-2">
+                        <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800">CTA #${cardId}</span>
+                        <button onclick="handleCtaCopy(${cardId}, this)" class="btn-progress-container w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 flex items-center justify-center transition" title="Copy CTA">
+                                <i class="fas fa-copy text-xs btn-icon"></i>
+                                <div class="btn-progress-line"></div>
+                            </button>
+                    </div>
+                    
+                    <div class="bg-gray-50 dark:bg-gray-900/50 p-3 rounded-xl border border-gray-200 font-bold dark:border-gray-700 card-text"> 
+                        ${cta}
+                    </div>
+                `;
+                els.ctaResultsContainer.appendChild(card);
+            });
+        }
+
+        async function handleCtaCopy(cardId, btnElement) {
+            const card = document.getElementById(`cta-card-${cardId}`);
+            const text = card.querySelector('.card-text').textContent;
+
+            // Animation Start
+            btnElement.classList.add('loading');
+            const progressBar = btnElement.querySelector('.btn-progress-line');
+            progressBar.style.width = '0%';
+            
+            // Simulate loading/progress
+            setTimeout(() => { progressBar.style.width = '50%'; }, 50);
+            setTimeout(() => { progressBar.style.width = '100%'; }, 150);
+
+            try {
+                await navigator.clipboard.writeText(text);
+                state.ctaCopiedItems[cardId] = true;
+                
+                // Finish Animation
+                setTimeout(() => {
+                    btnElement.classList.remove('loading');
+                    progressBar.style.width = '0%'; // Reset
+                    
+                    // Change icon to check temporarily
+                    btnElement.innerHTML = `<i class="fas fa-check text-xs text-green-600"></i>`;
+                    setTimeout(() => {
+                        btnElement.innerHTML = `<i class="fas fa-copy text-xs btn-icon"></i><div class="btn-progress-line"></div>`;
+                    }, 1500);
+                }, 300);
+                
+                showCtaStatus('Copied!', 'success');
+            } catch (err) {
+                console.error(err);
+                btnElement.classList.remove('loading');
+                progressBar.style.width = '0%';
+                showCtaStatus('Failed to copy', 'error');
+            }
+        }
+
+        async function copyAllCta() {
+            const cards = document.querySelectorAll('[id^="cta-card-"]');
+            if (cards.length === 0) return;
+
+            const originalHTML = els.ctaCopyAllBtn.innerHTML;
+            els.ctaCopyAllBtn.innerHTML = `
+                <span class="flex flex-col items-center w-full">
+                    <span>Copying...</span>
+                    <div class="btn-progress-bg btn-copy-progress mt-1"><div class="btn-progress-line" style="width: 0%"></div></div>
+                </span>
+            `;
+            const fill = els.ctaCopyAllBtn.querySelector('.btn-progress-line');
+
+            setTimeout(() => { fill.style.width = '40%'; }, 50);
+            setTimeout(() => { fill.style.width = '80%'; }, 200);
+
+            const texts = [];
+            cards.forEach(card => {
+                texts.push(card.querySelector('.card-text').textContent);
+            });
+
+            const finalText = texts.join('\n\n');
+
+            try {
+                await navigator.clipboard.writeText(finalText);
+                setTimeout(() => { fill.style.width = '100%'; }, 400);
+                
+                setTimeout(() => {
+                    els.ctaCopyAllBtn.innerHTML = `<span>Copied!</span>`;
+                    showCtaStatus('All CTAs copied', 'success');
+                    setTimeout(() => {
+                        els.ctaCopyAllBtn.innerHTML = `<span>Copy All</span>`;
+                    }, 2000);
+                }, 500);
+            } catch (err) {
+                console.error(err);
+                els.ctaCopyAllBtn.innerHTML = originalHTML;
+                showCtaStatus('Copy failed', 'error');
+            }
+        }
+
+        function updateCtaLineCount() {
+            const lines = els.ctaInput.value.split('\n').length;
+            els.ctaLineCount.textContent = `${lines} lines`;
+        }
+
+        function showCtaStatus(msg, type) {
+            els.ctaStatus.textContent = msg;
+            els.ctaStatus.className = 'text-xs px-3 py-1 rounded-xl transition-colors duration-200 ';
+            if (type === 'success') els.ctaStatus.classList.add('bg-green-100', 'text-green-800');
+            else if (type === 'error') els.ctaStatus.classList.add('bg-red-100', 'text-red-800');
+            else if (type === 'warning') els.ctaStatus.classList.add('bg-yellow-100', 'text-yellow-800');
+            else els.ctaStatus.classList.add('bg-gray-100', 'text-gray-600');
+        }
+
 
         // --- CHANGES PARSER LOGIC ---
 
@@ -1397,7 +1584,7 @@ CTA: **And this text**"></textarea>
             els.changesEmptyState.classList.remove('hidden');
             els.changesResultCount.textContent = `0 items`;
             els.changesResultCount.className = 'text-[10px] font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200 px-2 py-0.5 rounded-md';
-            state.copiedItems = {};
+            state.changesCopiedItems = {};
             showChangesStatus('Ready', 'default');
             updateChangesLineCount();
         }
@@ -1414,9 +1601,9 @@ CTA: **And this text**"></textarea>
             els.changesEmptyState.classList.add('hidden');
             
             const lines = text.split('\n');
-            let currentSection = '';
+            let currentSection = 'H1'; // Default starts at H1
             const changes = [];
-            state.copiedItems = {}; // Reset copy state
+            state.changesCopiedItems = {}; // Reset copy state
             
             for (let i = 0; i < lines.length; i++) {
                 const line = lines[i].trim();
@@ -1428,7 +1615,7 @@ CTA: **And this text**"></textarea>
                     const change = parseChangedLine(line, currentSection);
                     if (change) {
                         changes.push(change);
-                        state.copiedItems[changes.length] = { original: false, changed: false };
+                        state.changesCopiedItems[changes.length] = { original: false, changed: false };
                     }
                 }
             }
@@ -1442,7 +1629,7 @@ CTA: **And this text**"></textarea>
                 displayChangesCards(changes);
                 showChangesStatus(`Found ${changes.length} items`, 'success');
                 els.changesResultCount.textContent = `${changes.length} items`;
-                els.changesResultCount.className = 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200 px-2 py-0.5 rounded-md';
+                els.changesResultCount.className = 'text-[10px] font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200 px-2 py-0.5 rounded-md';
             }
         }
 
@@ -1465,7 +1652,7 @@ CTA: **And this text**"></textarea>
                 const cardId = index + 1;
                 const card = document.createElement('div');
                 card.id = `card-${cardId}`;
-                card.className = 'changes-card-item bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700 shadow-sm';
+                card.className = 'parser-card-item bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700 shadow-sm';
                 
                 let badgeClass = '';
                 let badgeText = '';
@@ -1484,19 +1671,11 @@ CTA: **And this text**"></textarea>
                     <div class="flex justify-between items-start mb-3">
                         <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md ${badgeClass}">${badgeText}</span>
                         <div class="flex gap-2">
-                             <button class="btn-progress-container w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 flex items-center justify-center transition" 
-                                data-card-id="${cardId}" 
-                                data-type="original" 
-                                data-text="${change.original.replace(/"/g, '&quot;')}" 
-                                title="Copy Original">
+                             <button onclick="handleChangesCopy(${cardId}, 'original', this)" class="btn-progress-container w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 flex items-center justify-center transition" title="Copy Original">
                                 <i class="fas fa-copy text-xs btn-icon"></i>
                                 <div class="btn-progress-line"></div>
                             </button>
-                            <button class="btn-progress-container w-8 h-8 rounded-full bg-green-100 dark:bg-green-900/30 text-green-600 hover:text-green-700 dark:hover:text-green-400 flex items-center justify-center transition" 
-                                data-card-id="${cardId}" 
-                                data-type="changed" 
-                                data-text="${change.changed.replace(/"/g, '&quot;')}" 
-                                title="Copy Changed">
+                            <button onclick="handleChangesCopy(${cardId}, 'changed', this)" class="btn-progress-container w-8 h-8 rounded-full bg-green-100 dark:bg-green-900/30 text-green-600 hover:text-green-700 dark:hover:text-green-400 flex items-center justify-center transition" title="Copy Changed">
                                 <i class="fas fa-check text-xs btn-icon"></i>
                                 <div class="btn-progress-line"></div>
                             </button>
@@ -1506,44 +1685,39 @@ CTA: **And this text**"></textarea>
                     <div class="space-y-2">
                         <div class="group relative">
                             <div class="text-[10px] uppercase text-gray-400 font-bold mb-1 card-text">Original</div>
-                            <div class="text-sm text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-900/50 p-3 rounded-lg border border-gray-200 dark:border-gray-700 card-text">${change.original}</div>
+                            <div class="text-sm text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-900/50 p-3 rounded-xl border border-gray-200 dark:border-gray-700 card-text">${change.original}</div>
                         </div>
                         <div class="group relative">
                             <div class="text-[10px] uppercase text-green-600 dark:text-green-400 font-bold mb-1 card-text">Changed To</div>
-                            <div class="text-sm text-green-800 dark:text-green-300 bg-green-50 dark:bg-green-900/20 p-3 rounded-lg border border-green-200 dark:border-green-800 card-text">${change.changed}</div>
+                            <div class="text-sm text-green-800 dark:text-green-300 bg-green-50 dark:bg-green-900/20 p-3 rounded-xl border border-green-200 dark:border-green-800 card-text">${change.changed}</div>
                         </div>
                     </div>
                     
-                    <div class="mt-3 text-xs text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-800/50 p-2 rounded-lg flex items-start gap-2">
+                    <div class="mt-3 text-xs text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-800/50 p-2 rounded-xl flex items-start gap-2">
                         <i class="fas fa-info-circle mt-0.5 text-gray-400 card-text"></i>
                         <span class="card-text">${change.reason}</span>
                     </div>
                 `;
                 els.changesResultsContainer.appendChild(card);
             });
-
-            // Attach listeners to new buttons
-            document.querySelectorAll('#changes-results-container button').forEach(btn => {
-                btn.addEventListener('click', handleIndividualCopy);
-            });
         }
 
-        async function handleIndividualCopy(e) {
-            const btn = e.currentTarget;
+        async function handleChangesCopy(cardId, type, btnElement) {
+            const card = document.getElementById(`card-${cardId}`);
+            const isOriginal = type === 'original';
             
-            // Get data directly from the button attributes
-            const cardId = parseInt(btn.getAttribute('data-card-id'));
-            const type = btn.getAttribute('data-type');
-            const text = btn.getAttribute('data-text');
-            
-            if (!text) return;
+            // Select text based on type
+            const textElements = card.querySelectorAll('.card-text');
+            // Original text is the second card-text child (inside the first group)
+            // Changed text is the fourth card-text child (inside the second group)
+            const text = isOriginal ? textElements[1].textContent : textElements[3].textContent;
 
-            // Visual: Start Loading
-            btn.classList.add('loading');
-            const progressBar = btn.querySelector('.btn-progress-line');
+            // Animation Start
+            btnElement.classList.add('loading');
+            const progressBar = btnElement.querySelector('.btn-progress-line');
             progressBar.style.width = '0%';
-
-            // Animate Progress
+            
+            // Simulate loading/progress
             setTimeout(() => { progressBar.style.width = '50%'; }, 50);
             setTimeout(() => { progressBar.style.width = '100%'; }, 150);
 
@@ -1551,51 +1725,64 @@ CTA: **And this text**"></textarea>
                 await navigator.clipboard.writeText(text);
                 
                 // Update State
-                if (!state.copiedItems[cardId]) {
-                    state.copiedItems[cardId] = { original: false, changed: false };
-                }
-                state.copiedItems[cardId][type] = true;
-                
-                // Check if both copied
-                if (state.copiedItems[cardId].original && state.copiedItems[cardId].changed) {
-                    const card = document.getElementById(`card-${cardId}`);
+                if (!state.changesCopiedItems[cardId]) state.changesCopiedItems[cardId] = { original: false, changed: false };
+                state.changesCopiedItems[cardId][type] = true;
+
+                // Check if both copied -> Turn Soft Red
+                if (state.changesCopiedItems[cardId].original && state.changesCopiedItems[cardId].changed) {
                     card.classList.add('card-copied-fully');
                 }
 
-                // Finish Animation & Reset Button
+                // Finish Animation
                 setTimeout(() => {
-                    btn.classList.remove('loading');
-                    progressBar.style.width = '0%'; // Reset for next click
-                }, 400);
+                    btnElement.classList.remove('loading');
+                    progressBar.style.width = '0%';
+                    
+                    // Change icon to check temporarily
+                    btnElement.innerHTML = `<i class="fas fa-check text-xs text-green-600"></i>`;
+                    setTimeout(() => {
+                        // Reset to original icon structure
+                        const iconClass = isOriginal ? 'fa-copy' : 'fa-check';
+                        btnElement.innerHTML = `<i class="fas ${iconClass} text-xs btn-icon"></i><div class="btn-progress-line"></div>`;
+                    }, 1500);
+                }, 300);
                 
                 showChangesStatus('Copied!', 'success');
             } catch (err) {
                 console.error(err);
-                btn.classList.remove('loading');
+                btnElement.classList.remove('loading');
                 progressBar.style.width = '0%';
                 showChangesStatus('Failed to copy', 'error');
             }
         }
 
         async function copyAllChanges() {
-            const buttons = document.querySelectorAll('#changes-results-container button[data-type="changed"]');
-            if (buttons.length === 0) return;
+            const cards = document.querySelectorAll('[id^="card-"]');
+            if (cards.length === 0) return;
 
             const originalHTML = els.changesCopyAllBtn.innerHTML;
             els.changesCopyAllBtn.innerHTML = `
                 <span class="flex flex-col items-center w-full">
                     <span>Copying...</span>
-                    <div class="btn-progress-bg btn-copy-progress mt-1"><div class="progress-bar-fill" style="width: 0%"></div></div>
+                    <div class="btn-progress-bg btn-copy-progress mt-1"><div class="btn-progress-line" style="width: 0%"></div></div>
                 </span>
             `;
-            const fill = els.changesCopyAllBtn.querySelector('.progress-bar-fill');
+            const fill = els.changesCopyAllBtn.querySelector('.btn-progress-line');
 
-            // Simulate progress
+            // Simulate progress (500ms total)
             setTimeout(() => { fill.style.width = '40%'; }, 50);
             setTimeout(() => { fill.style.width = '80%'; }, 200);
 
             const texts = [];
-            buttons.forEach(btn => texts.push(btn.getAttribute('data-text')));
+            // Collect all "Changed" text (standard workflow is to copy the new version)
+            cards.forEach(card => {
+                const textElements = card.querySelectorAll('.card-text');
+                // Changed text is index 3 (0:Label, 1:OrigVal, 2:Label, 3:ChangeVal)
+                if(textElements[3]) {
+                    texts.push(textElements[3].textContent);
+                }
+            });
+
             const finalText = texts.join('\n\n');
 
             try {
@@ -1618,7 +1805,7 @@ CTA: **And this text**"></textarea>
 
         function showChangesStatus(msg, type) {
             els.changesStatus.textContent = msg;
-            els.changesStatus.className = 'text-xs px-3 py-1 rounded-lg transition-colors duration-200 ';
+            els.changesStatus.className = 'text-xs px-3 py-1 rounded-xl transition-colors duration-200 ';
             if (type === 'success') els.changesStatus.classList.add('bg-green-100', 'text-green-800');
             else if (type === 'error') els.changesStatus.classList.add('bg-red-100', 'text-red-800');
             else if (type === 'warning') els.changesStatus.classList.add('bg-yellow-100', 'text-yellow-800');
@@ -1682,16 +1869,9 @@ CTA: **And this text**"></textarea>
         els.ctaCloseBtn.addEventListener('click', closeCtaModal);
         els.ctaModalBackdrop.addEventListener('click', closeCtaModal);
         els.ctaProcessBtn.addEventListener('click', processCTA);
-
-        els.ctaCopyBtn.addEventListener('click', () => {
-            navigator.clipboard.writeText(els.ctaOutput.textContent).then(() => {
-                const original = els.ctaCopyBtn.textContent;
-                els.ctaCopyBtn.textContent = 'Copied!';
-                setTimeout(() => {
-                    els.ctaCopyBtn.textContent = original;
-                }, 2000);
-            });
-        });
+        els.ctaResetBtn.addEventListener('click', resetCtaParser);
+        els.ctaCopyAllBtn.addEventListener('click', copyAllCta);
+        els.ctaInput.addEventListener('input', updateCtaLineCount);
 
         // Changes Modal Listeners
         els.changesModalBtn.addEventListener('click', openChangesModal);
@@ -1699,7 +1879,7 @@ CTA: **And this text**"></textarea>
         els.changesModalBackdrop.addEventListener('click', closeChangesModal);
         els.changesParseBtn.addEventListener('click', parseChangesText);
         els.changesClearBtn.addEventListener('click', () => {
-             els.changesInput.value = '';
+            els.changesInput.value = '';
         });
         els.changesResetBtn.addEventListener('click', resetChanges);
         els.changesCopyAllBtn.addEventListener('click', copyAllChanges);
