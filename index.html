@@ -1082,9 +1082,8 @@
             changesModalBackdrop: document.getElementById('changes-modal-backdrop'),
             changesModalPanel: document.getElementById('changes-modal-panel'),
             changesCloseBtn: document.getElementById('changes-close-btn'),
-            changesInput: document.getElementById('changes-input'),
+changesInput: document.getElementById('changes-input'),
             changesParseBtn: document.getElementById('changes-parse-btn'),
-            changesClearBtn: document.getElementById('changes-clear-btn'),
             changesResetBtn: document.getElementById('changes-reset-btn'),
             changesResultsContainer: document.getElementById('changes-results-container'),
             changesEmptyState: document.getElementById('changes-empty-state'),
@@ -1582,7 +1581,10 @@
                     await navigator.clipboard.writeText(plainContent);
                 }
 
-                state.ctaCopiedItems[cardId] = true;
+state.ctaCopiedItems[cardId] = true;
+
+                // Mark card as copied (red styling)
+                card.classList.add('card-copied-fully');
 
                 // Finish Animation
                 setTimeout(() => {
@@ -1686,7 +1688,7 @@
             }, 300);
         }
 
-        function resetChanges() {
+function resetChanges() {
             els.changesInput.value = '';
             els.changesResultsContainer.innerHTML = '';
             els.changesEmptyState.classList.remove('hidden');
@@ -1695,9 +1697,12 @@
             state.changesCopiedItems = {};
             showChangesStatus('Ready', 'default');
             updateChangesLineCount();
+
+            // ADD THIS: Hide the "Copy All" button
+            els.changesCopyAllBtn.classList.add('hidden');
         }
 
-        function parseChangesText() {
+function parseChangesText() {
             const text = els.changesInput.value.trim();
             if (!text) {
                 showChangesStatus('Please paste text first', 'error');
@@ -1708,29 +1713,15 @@
             els.changesResultsContainer.innerHTML = '';
             els.changesEmptyState.classList.add('hidden');
 
-            const lines = text.split('\n');
-            let currentSection = 'H1'; // Default starts at H1
             const changes = [];
             state.changesCopiedItems = {}; // Reset copy state
 
-            for (let i = 0; i < lines.length; i++) {
-                const line = lines[i].trim();
-                if (line.includes('H1:')) currentSection = 'H1';
-                else if (line.includes('H2s:')) currentSection = 'H2';
-                else if (line.includes('H3s:')) currentSection = 'H3';
-
-                if (line.startsWith('CHANGED:')) {
-                    const change = parseChangedLine(line, currentSection);
-                    if (change) {
-                        changes.push(change);
-                        state.changesCopiedItems[changes.length] = { original: false, changed: false };
-                    }
-                }
-            }
+            // Try multiple parsing strategies
+            changes.push(...parseWithMultipleStrategies(text));
 
             if (changes.length === 0) {
                 els.changesEmptyState.classList.remove('hidden');
-                showChangesStatus('No changes found', 'warning');
+                showChangesStatus('No changes found. Try a different format.', 'warning');
                 els.changesResultCount.textContent = `0 items`;
                 els.changesResultCount.className = 'bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-400 px-2 py-0.5 rounded-md';
             } else {
@@ -1739,6 +1730,154 @@
                 els.changesResultCount.textContent = `${changes.length} items`;
                 els.changesResultCount.className = 'text-[10px] font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200 px-2 py-0.5 rounded-md';
             }
+        }
+
+function parseWithMultipleStrategies(text) {
+            const changes = [];
+            
+            // Strategy 1: Parse the exact format you provided
+            changes.push(...parseExactFormat(text));
+            
+            // Strategy 2: Parse flexible arrow format
+            if (changes.length === 0) {
+                changes.push(...parseArrowFormat(text));
+            }
+            
+            // Strategy 3: Parse "from/to" format
+            if (changes.length === 0) {
+                changes.push(...parseFromToFormat(text));
+            }
+            
+            // Strategy 4: Parse simple change format
+            if (changes.length === 0) {
+                changes.push(...parseSimpleFormat(text));
+            }
+            
+            return changes;
+        }
+
+        function parseExactFormat(text) {
+            const changes = [];
+            const lines = text.split('\n');
+            
+            for (const line of lines) {
+                const trimmed = line.trim();
+                
+                // Skip empty lines and headers
+                if (!trimmed || trimmed === 'CHANGES MADE' || trimmed.startsWith('NO CHANGE:')) continue;
+                
+                // Parse CHANGED lines with exact format
+                if (trimmed.startsWith('CHANGED:')) {
+                    const change = parseChangedLineNewFormat(trimmed);
+                    if (change) {
+                        changes.push(change);
+                    }
+                }
+            }
+            
+            return changes;
+        }
+
+        function parseArrowFormat(text) {
+            const changes = [];
+            const lines = text.split('\n');
+            
+            for (const line of lines) {
+                const trimmed = line.trim();
+                if (!trimmed) continue;
+                
+                // Match: "Original" → "Changed" (Reason: ...)
+                const arrowRegex = /"([^"]+)"\s*→\s*"([^"]+)"\s*\([^)]*Reason[^)]*:\s*([^)]+)\)/i;
+                const match = trimmed.match(arrowRegex);
+                
+                if (match) {
+                    changes.push({
+                        section: detectHeadingLevel(match[1]) || 'H2',
+                        original: match[1],
+                        changed: match[2],
+                        reason: match[3].trim()
+                    });
+                }
+            }
+            
+            return changes;
+        }
+
+        function parseFromToFormat(text) {
+            const changes = [];
+            const lines = text.split('\n');
+            
+            for (const line of lines) {
+                const trimmed = line.trim();
+                if (!trimmed) continue;
+                
+                // Match: FROM "Original" TO "Changed" BECAUSE "Reason"
+                const fromToRegex = /FROM\s+"([^"]+)"\s+TO\s+"([^"]+)"\s+(?:BECAUSE|REASON)\s+"([^"]+)"/i;
+                const match = trimmed.match(fromToRegex);
+                
+                if (match) {
+                    changes.push({
+                        section: detectHeadingLevel(match[1]) || 'H2',
+                        original: match[1],
+                        changed: match[2],
+                        reason: match[3].trim()
+                    });
+                }
+            }
+            
+            return changes;
+        }
+
+        function parseSimpleFormat(text) {
+            const changes = [];
+            const lines = text.split('\n');
+            
+            for (const line of lines) {
+                const trimmed = line.trim();
+                if (!trimmed) continue;
+                
+                // Match: Original -> Changed [Reason: ...]
+                const simpleRegex = /([^-]+)\s*->\s*([^-]+)\s*\[([^]]+)\]/;
+                const match = trimmed.match(simpleRegex);
+                
+                if (match) {
+                    changes.push({
+                        section: detectHeadingLevel(match[1]) || 'H2',
+                        original: match[1].trim(),
+                        changed: match[2].trim(),
+                        reason: match[3].replace(/Reason:\s*/i, '').trim()
+                    });
+                }
+            }
+            
+            return changes;
+        }
+
+        function detectHeadingLevel(text) {
+            // Simple heuristic: if text contains common heading patterns, detect level
+            if (text.includes('Benefits') || text.includes('Understanding') || text.includes('Definition')) {
+                return 'H2';
+            } else if (text.includes('Key Elements') || text.includes('Regulatory') || text.includes('Risk')) {
+                return 'H3';
+            } else if (text.includes('Implementing') || text.includes('Real-Time') || text.includes('Automated')) {
+                return 'H2';
+            }
+            return 'H2'; // Default
+        }
+
+        function parseChangedLineNewFormat(line) {
+            // Updated regex to handle your format: CHANGED: H1 "Original" → "Changed" (Reason: ...)
+            const regex = /CHANGED:\s*([Hh]\d+)\s+"([^"]+)"\s*→\s*"([^"]+)"\s*\(Reason:\s*([^)]+)\)/i;
+            const match = line.match(regex);
+            if (match) {
+                return {
+                    section: match[1].toUpperCase(), // H1, H2, H3
+                    original: match[2],
+                    changed: match[3],
+                    reason: match[4].trim()
+                };
+            }
+            return null;
         }
 
         function parseChangedLine(line, section) {
@@ -1756,26 +1895,26 @@
         }
 
         function displayChangesCards(changes) {
-    changes.forEach((change, index) => {
-        const cardId = index + 1;
-        const card = document.createElement('div');
-        card.id = `card-${cardId}`;
-        card.className = 'parser-card-item bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700 shadow-sm';
+            changes.forEach((change, index) => {
+                const cardId = index + 1;
+                const card = document.createElement('div');
+                card.id = `card-${cardId}`;
+                card.className = 'parser-card-item bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700 shadow-sm';
 
-        // Always show "Parser #X" based on card position
-        const badgeText = `CHANGES #${cardId}`;
-        
-        // You can keep color coding based on section if you want
-        let badgeClass = '';
-        if (change.section === 'H1') {
-            badgeClass = 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 border border-blue-200 dark:border-blue-800';
-        } else if (change.section === 'H2') {
-            badgeClass = 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800';
-        } else {
-            badgeClass = 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400 border border-purple-200 dark:border-purple-800';
-        }
+                // Always show "Parser #X" based on card position
+                const badgeText = `${change.section} #${cardId}`;
 
-        card.innerHTML = `
+                // You can keep color coding based on section if you want
+                let badgeClass = '';
+                if (change.section === 'H1') {
+                    badgeClass = 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 border border-blue-200 dark:border-blue-800';
+                } else if (change.section === 'H2') {
+                    badgeClass = 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800';
+                } else {
+                    badgeClass = 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400 border border-purple-200 dark:border-purple-800';
+                }
+
+                card.innerHTML = `
             <div class="flex justify-between items-start mb-3">
                 <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md ${badgeClass}">${badgeText}</span>
                 <div class="flex gap-2">
@@ -1806,9 +1945,9 @@
                 <span class="card-text">${change.reason}</span>
             </div>
         `;
-        els.changesResultsContainer.appendChild(card);
-    });
-}
+                els.changesResultsContainer.appendChild(card);
+            });
+        }
 
         async function handleChangesCopy(cardId, type, btnElement) {
             const card = document.getElementById(`card-${cardId}`);
@@ -1985,10 +2124,7 @@
         els.changesModalBtn.addEventListener('click', openChangesModal);
         els.changesCloseBtn.addEventListener('click', closeChangesModal);
         els.changesModalBackdrop.addEventListener('click', closeChangesModal);
-        els.changesParseBtn.addEventListener('click', parseChangesText);
-        els.changesClearBtn.addEventListener('click', () => {
-            els.changesInput.value = '';
-        });
+els.changesParseBtn.addEventListener('click', parseChangesText);
         els.changesResetBtn.addEventListener('click', resetChanges);
         els.changesCopyAllBtn.addEventListener('click', copyAllChanges);
         els.changesInput.addEventListener('input', updateChangesLineCount);
