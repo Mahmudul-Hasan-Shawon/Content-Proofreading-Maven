@@ -505,6 +505,20 @@
                             </div>
                         </div>
 
+                                               <!-- H1 Pill -->
+                        <div>
+                            <label for="pill-h1"
+                                class="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1.5 ml-1">H1
+                                Heading</label>
+                            <div class="pill-input-group">
+                                <input type="text" id="pill-h1" class="pill-input"
+                                    placeholder="e.g. The Future of Coffee">
+                                <button id="btn-h1-apply" class="pill-btn" title="Apply H1">
+                                    <i class="fas fa-check text-xs"></i>
+                                </button>
+                            </div>
+                        </div>
+
                         <!-- Article Topic Pill -->
                         <div>
                             <label for="pill-topic"
@@ -519,19 +533,6 @@
                             </div>
                         </div>
 
-                        <!-- H1 Pill -->
-                        <div>
-                            <label for="pill-h1"
-                                class="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1.5 ml-1">H1
-                                Heading</label>
-                            <div class="pill-input-group">
-                                <input type="text" id="pill-h1" class="pill-input"
-                                    placeholder="e.g. The Future of Coffee">
-                                <button id="btn-h1-apply" class="pill-btn" title="Apply H1">
-                                    <i class="fas fa-check text-xs"></i>
-                                </button>
-                            </div>
-                        </div>
                     </div>
                 </div>
 
@@ -1446,84 +1447,89 @@ changesInput: document.getElementById('changes-input'),
             }, 300);
         }
 
-        // --- CTA Parser Modal Logic ---
-        function openCtaModal() {
-            els.ctaModal.classList.remove('hidden');
-            setTimeout(() => {
-                els.ctaModalBackdrop.classList.remove('opacity-0');
-                els.ctaModalPanel.classList.remove('scale-95', 'opacity-0');
-                els.ctaModalPanel.classList.add('scale-100', 'opacity-100');
-            }, 10);
-        }
+       // --- CTA Parser Modal Logic ---
+function openCtaModal() {
+    els.ctaModal.classList.remove('hidden');
+    setTimeout(() => {
+        els.ctaModalBackdrop.classList.remove('opacity-0');
+        els.ctaModalPanel.classList.remove('scale-95', 'opacity-0');
+        els.ctaModalPanel.classList.add('scale-100', 'opacity-100');
+    }, 10);
+}
 
-        function closeCtaModal() {
-            els.ctaModalBackdrop.classList.add('opacity-0');
-            els.ctaModalPanel.classList.remove('scale-100', 'opacity-100');
-            els.ctaModalPanel.classList.add('scale-95', 'opacity-0');
-            setTimeout(() => {
-                els.ctaModal.classList.add('hidden');
-            }, 300);
-        }
+function closeCtaModal() {
+    els.ctaModalBackdrop.classList.add('opacity-0');
+    els.ctaModalPanel.classList.remove('scale-100', 'opacity-100');
+    els.ctaModalPanel.classList.add('scale-95', 'opacity-0');
+    setTimeout(() => {
+        els.ctaModal.classList.add('hidden');
+    }, 300);
+}
 
-        function resetCtaParser() {
-            els.ctaInput.value = '';
-            els.ctaResultsContainer.innerHTML = '';
-            els.ctaEmptyState.classList.remove('hidden');
-            els.ctaResultCount.textContent = `0 CTAs`;
-            els.ctaResultCount.className = 'text-[10px] font-medium bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200 px-2 py-0.5 rounded-md';
-            state.ctaCopiedItems = {};
-            showCtaStatus('Ready', 'default');
-            updateCtaLineCount();
-        }
+function resetCtaParser() {
+    els.ctaInput.value = '';
+    els.ctaResultsContainer.innerHTML = '';
+    els.ctaEmptyState.classList.remove('hidden');
+    els.ctaResultCount.textContent = `0 CTAs`;
+    els.ctaResultCount.className = 'text-[10px] font-medium bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200 px-2 py-0.5 rounded-md';
+    state.ctaCopiedItems = {};
+    showCtaStatus('Ready', 'default');
+    updateCtaLineCount();
+}
 
-        function processCTA() {
-            const text = els.ctaInput.value.trim();
-            if (!text) {
-                showCtaStatus('Please paste text first', 'error');
-                return;
-            }
+function processCTA() {
+    const text = els.ctaInput.value.trim();
+    if (!text) {
+        showCtaStatus('Please paste text first', 'error');
+        return;
+    }
 
-            showCtaStatus('Parsing...', 'info');
-            els.ctaResultsContainer.innerHTML = '';
-            els.ctaEmptyState.classList.add('hidden');
+    showCtaStatus('Parsing...', 'info');
+    els.ctaResultsContainer.innerHTML = '';
+    els.ctaEmptyState.classList.add('hidden');
 
-            const lines = text.split('\n');
-            const ctas = [];
-            state.ctaCopiedItems = {}; // Reset copy state
+    const lines = text.split('\n');
+    const ctas = [];
+    state.ctaCopiedItems = {}; // Reset copy state
 
-            for (let i = 0; i < lines.length; i++) {
-                const line = lines[i].trim();
-                if (line.toLowerCase().startsWith('cta:')) {
-                    const match = line.match(/\*\*(.*?)\*\*/);
-                    if (match && match[1]) {
-                        ctas.push(match[1]);
-                        // CTA parser only has one "copy" action per card, so we track simple bool or just rely on UI state
-                        state.ctaCopiedItems[ctas.length] = false;
-                    }
-                }
-            }
-
-            if (ctas.length === 0) {
-                els.ctaEmptyState.classList.remove('hidden');
-                showCtaStatus('No CTAs found', 'warning');
-                els.ctaResultCount.textContent = `0 CTAs`;
-                els.ctaResultCount.className = 'bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-400 px-2 py-0.5 rounded-md';
-            } else {
-                displayCtaCards(ctas);
-                showCtaStatus(`Found ${ctas.length} CTAs`, 'success');
-                els.ctaResultCount.textContent = `${ctas.length} CTAs`;
-                els.ctaResultCount.className = 'text-[10px] font-medium bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200 px-2 py-0.5 rounded-md';
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i].trim();
+        // Check for lines that start with "CTA:" (case insensitive)
+        if (line.toLowerCase().startsWith('cta:')) {
+            // Extract everything after "CTA:" (including any spaces after colon)
+            let ctaText = line.substring(line.indexOf(':') + 1).trim();
+            
+            // Remove any remaining formatting like ** if present
+            ctaText = ctaText.replace(/\*\*/g, '');
+            
+            if (ctaText) {
+                ctas.push(ctaText);
+                state.ctaCopiedItems[ctas.length] = false;
             }
         }
+    }
 
-        function displayCtaCards(ctas) {
-            ctas.forEach((cta, index) => {
-                const cardId = index + 1; // Starts from CTA #1
-                const card = document.createElement('div');
-                card.id = `cta-card-${cardId}`;
-                card.className = 'parser-card-item bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700 shadow-sm';
+    if (ctas.length === 0) {
+        els.ctaEmptyState.classList.remove('hidden');
+        showCtaStatus('No CTAs found', 'warning');
+        els.ctaResultCount.textContent = `0 CTAs`;
+        els.ctaResultCount.className = 'bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-400 px-2 py-0.5 rounded-md';
+    } else {
+        displayCtaCards(ctas);
+        showCtaStatus(`Found ${ctas.length} CTAs`, 'success');
+        els.ctaResultCount.textContent = `${ctas.length} CTAs`;
+        els.ctaResultCount.className = 'text-[10px] font-medium bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200 px-2 py-0.5 rounded-md';
+    }
+}
 
-                card.innerHTML = `
+function displayCtaCards(ctas) {
+    ctas.forEach((cta, index) => {
+        const cardId = index + 1; // Starts from CTA #1
+        const card = document.createElement('div');
+        card.id = `cta-card-${cardId}`;
+        card.className = 'parser-card-item bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700 shadow-sm';
+
+        card.innerHTML = `
             <div class="flex justify-between items-start mb-2">
                 <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800">CTA #${cardId}</span>
                 <button onclick="handleCtaCopy(${cardId}, this)" class="btn-progress-container w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 flex items-center justify-center transition" title="Copy CTA">
@@ -1532,135 +1538,144 @@ changesInput: document.getElementById('changes-input'),
                 </button>
             </div>
             
-            <div class="bg-gray-50 dark:bg-gray-900/50 p-3 rounded-xl border border-gray-200 font-bold dark:border-gray-700 card-text">${cta}</div>
+            <div class="bg-gray-50 dark:bg-gray-900/50 p-3 rounded-xl border border-gray-200 dark:border-gray-700">
+                <strong class="card-text">${escapeHtml(cta)}</strong>
+            </div>
         `;
-                els.ctaResultsContainer.appendChild(card);
-            });
-        }
+        els.ctaResultsContainer.appendChild(card);
+    });
+}
 
-        async function handleCtaCopy(cardId, btnElement) {
-            const card = document.getElementById(`cta-card-${cardId}`);
-            let text = card.querySelector('.card-text').textContent;
+// Helper function to escape HTML to prevent XSS
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
 
-            // Format the text: remove spaces after periods
-            text = text.replace(/\.\s+/g, '.');
+async function handleCtaCopy(cardId, btnElement) {
+    const card = document.getElementById(`cta-card-${cardId}`);
+    let text = card.querySelector('.card-text').textContent;
 
-            // Add a single space after periods (but not multiple spaces)
-            // This ensures proper spacing without extra spaces
-            text = text.replace(/\.([^\s])/g, '. $1');
+    // Format the text: remove spaces after periods
+    text = text.replace(/\.\s+/g, '.');
 
-            // Animation Start
-            btnElement.classList.add('loading');
-            const progressBar = btnElement.querySelector('.btn-progress-line');
-            progressBar.style.width = '0%';
+    // Add a single space after periods (but not multiple spaces)
+    // This ensures proper spacing without extra spaces
+    text = text.replace(/\.([^\s])/g, '. $1');
 
-            // Simulate loading/progress
-            setTimeout(() => { progressBar.style.width = '50%'; }, 50);
-            setTimeout(() => { progressBar.style.width = '100%'; }, 150);
+    // Animation Start
+    btnElement.classList.add('loading');
+    const progressBar = btnElement.querySelector('.btn-progress-line');
+    progressBar.style.width = '0%';
 
-            try {
-                // Try to copy as rich text (HTML) for proper bold formatting
-                const htmlContent = `<strong>${text}</strong>`;
-                const plainContent = text; // Fallback plain text
+    // Simulate loading/progress
+    setTimeout(() => { progressBar.style.width = '50%'; }, 50);
+    setTimeout(() => { progressBar.style.width = '100%'; }, 150);
 
-                try {
-                    // Create ClipboardItem with both HTML and plain text formats
-                    const htmlBlob = new Blob([htmlContent], { type: 'text/html' });
-                    const plainBlob = new Blob([plainContent], { type: 'text/plain' });
+    try {
+        // Try to copy as rich text (HTML) for proper bold formatting
+        const htmlContent = `<strong>${escapeHtml(text)}</strong>`;
+        const plainContent = text; // Fallback plain text
 
-                    const clipboardItem = new ClipboardItem({
-                        'text/html': htmlBlob,
-                        'text/plain': plainBlob
-                    });
+        try {
+            // Create ClipboardItem with both HTML and plain text formats
+            const htmlBlob = new Blob([htmlContent], { type: 'text/html' });
+            const plainBlob = new Blob([plainContent], { type: 'text/plain' });
 
-                    await navigator.clipboard.write([clipboardItem]);
-
-                } catch (clipboardApiError) {
-                    // Fallback: copy plain text without bold formatting
-                    console.log('Using fallback copy method');
-                    await navigator.clipboard.writeText(plainContent);
-                }
-
-state.ctaCopiedItems[cardId] = true;
-
-                // Mark card as copied (red styling)
-                card.classList.add('card-copied-fully');
-
-                // Finish Animation
-                setTimeout(() => {
-                    btnElement.classList.remove('loading');
-                    progressBar.style.width = '0%'; // Reset
-
-                    // Change icon to check temporarily
-                    btnElement.innerHTML = `<i class="fas fa-check text-xs text-green-600"></i>`;
-                    setTimeout(() => {
-                        btnElement.innerHTML = `<i class="fas fa-copy text-xs btn-icon"></i><div class="btn-progress-line"></div>`;
-                    }, 1500);
-                }, 300);
-
-                showCtaStatus('Copied with bold formatting!', 'success');
-            } catch (err) {
-                console.error(err);
-                btnElement.classList.remove('loading');
-                progressBar.style.width = '0%';
-                showCtaStatus('Failed to copy', 'error');
-            }
-        }
-
-        async function copyAllCta() {
-            const cards = document.querySelectorAll('[id^="cta-card-"]');
-            if (cards.length === 0) return;
-
-            const originalHTML = els.ctaCopyAllBtn.innerHTML;
-            els.ctaCopyAllBtn.innerHTML = `
-                <span class="flex flex-col items-center w-full">
-                    <span>Copying...</span>
-                    <div class="btn-progress-bg btn-copy-progress mt-1"><div class="btn-progress-line" style="width: 0%"></div></div>
-                </span>
-            `;
-            const fill = els.ctaCopyAllBtn.querySelector('.btn-progress-line');
-
-            setTimeout(() => { fill.style.width = '40%'; }, 50);
-            setTimeout(() => { fill.style.width = '80%'; }, 200);
-
-            const texts = [];
-            cards.forEach(card => {
-                texts.push(card.querySelector('.card-text').textContent);
+            const clipboardItem = new ClipboardItem({
+                'text/html': htmlBlob,
+                'text/plain': plainBlob
             });
 
-            const finalText = texts.join('\n\n');
+            await navigator.clipboard.write([clipboardItem]);
 
-            try {
-                await navigator.clipboard.writeText(finalText);
-                setTimeout(() => { fill.style.width = '100%'; }, 400);
-
-                setTimeout(() => {
-                    els.ctaCopyAllBtn.innerHTML = `<span>Copied!</span>`;
-                    showCtaStatus('All CTAs copied', 'success');
-                    setTimeout(() => {
-                        els.ctaCopyAllBtn.innerHTML = `<span>Copy All</span>`;
-                    }, 2000);
-                }, 500);
-            } catch (err) {
-                console.error(err);
-                els.ctaCopyAllBtn.innerHTML = originalHTML;
-                showCtaStatus('Copy failed', 'error');
-            }
+        } catch (clipboardApiError) {
+            // Fallback: copy plain text without bold formatting
+            console.log('Using fallback copy method');
+            await navigator.clipboard.writeText(plainContent);
         }
 
-        function updateCtaLineCount() {
-            const lines = els.ctaInput.value.split('\n').length;
-            els.ctaLineCount.textContent = `${lines} lines`;
-        }
+        state.ctaCopiedItems[cardId] = true;
 
-        function showCtaStatus(msg, type) {
-            els.ctaStatus.textContent = msg;
-            els.ctaStatus.className = 'text-xs px-3 py-1 rounded-xl transition-colors duration-200 ';
-            if (type === 'success') els.ctaStatus.classList.add('bg-green-100', 'text-green-800');
-            else if (type === 'error') els.ctaStatus.classList.add('bg-red-100', 'text-red-800');
-            else if (type === 'warning') els.ctaStatus.classList.add('bg-yellow-100', 'text-yellow-800');
-            else els.ctaStatus.classList.add('bg-gray-100', 'text-gray-600');
-        }
+        // Mark card as copied (red styling)
+        card.classList.add('card-copied-fully');
+
+        // Finish Animation
+        setTimeout(() => {
+            btnElement.classList.remove('loading');
+            progressBar.style.width = '0%'; // Reset
+
+            // Change icon to check temporarily
+            btnElement.innerHTML = `<i class="fas fa-check text-xs text-green-600"></i>`;
+            setTimeout(() => {
+                btnElement.innerHTML = `<i class="fas fa-copy text-xs btn-icon"></i><div class="btn-progress-line"></div>`;
+            }, 1500);
+        }, 300);
+
+        showCtaStatus('Copied with bold formatting!', 'success');
+    } catch (err) {
+        console.error(err);
+        btnElement.classList.remove('loading');
+        progressBar.style.width = '0%';
+        showCtaStatus('Failed to copy', 'error');
+    }
+}
+
+async function copyAllCta() {
+    const cards = document.querySelectorAll('[id^="cta-card-"]');
+    if (cards.length === 0) return;
+
+    const originalHTML = els.ctaCopyAllBtn.innerHTML;
+    els.ctaCopyAllBtn.innerHTML = `
+        <span class="flex flex-col items-center w-full">
+            <span>Copying...</span>
+            <div class="btn-progress-bg btn-copy-progress mt-1"><div class="btn-progress-line" style="width: 0%"></div></div>
+        </span>
+    `;
+    const fill = els.ctaCopyAllBtn.querySelector('.btn-progress-line');
+
+    setTimeout(() => { fill.style.width = '40%'; }, 50);
+    setTimeout(() => { fill.style.width = '80%'; }, 200);
+
+    const texts = [];
+    cards.forEach(card => {
+        texts.push(card.querySelector('.card-text').textContent);
+    });
+
+    const finalText = texts.join('\n\n');
+
+    try {
+        await navigator.clipboard.writeText(finalText);
+        setTimeout(() => { fill.style.width = '100%'; }, 400);
+
+        setTimeout(() => {
+            els.ctaCopyAllBtn.innerHTML = `<span>Copied!</span>`;
+            showCtaStatus('All CTAs copied', 'success');
+            setTimeout(() => {
+                els.ctaCopyAllBtn.innerHTML = `<span>Copy All</span>`;
+            }, 2000);
+        }, 500);
+    } catch (err) {
+        console.error(err);
+        els.ctaCopyAllBtn.innerHTML = originalHTML;
+        showCtaStatus('Copy failed', 'error');
+    }
+}
+
+function updateCtaLineCount() {
+    const lines = els.ctaInput.value.split('\n').length;
+    els.ctaLineCount.textContent = `${lines} lines`;
+}
+
+function showCtaStatus(msg, type) {
+    els.ctaStatus.textContent = msg;
+    els.ctaStatus.className = 'text-xs px-3 py-1 rounded-xl transition-colors duration-200 ';
+    if (type === 'success') els.ctaStatus.classList.add('bg-green-100', 'text-green-800');
+    else if (type === 'error') els.ctaStatus.classList.add('bg-red-100', 'text-red-800');
+    else if (type === 'warning') els.ctaStatus.classList.add('bg-yellow-100', 'text-yellow-800');
+    else els.ctaStatus.classList.add('bg-gray-100', 'text-gray-600');
+}
 
 
         // --- CHANGES PARSER LOGIC ---
